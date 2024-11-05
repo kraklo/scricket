@@ -1,3 +1,7 @@
+mod game_state;
+
+use game_state::GameState;
+
 fn main() {
-    println!("Hello, world!");
+    let game_state = GameState::new();
 }
