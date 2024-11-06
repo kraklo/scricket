@@ -5,7 +5,7 @@ pub struct Team {
     players: Vec<Player>,
     team_type: TeamType,
     pub runs: u32,
-    wickets: u32,
+    pub wickets: u32,
 }
 
 impl Team {
