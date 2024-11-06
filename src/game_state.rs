@@ -1,22 +1,28 @@
 mod event;
 mod team;
 
-use event::Event;
-use team::Team;
+pub use event::Event;
+use team::{Team, TeamType};
 
 pub struct GameState {
-    team_a: Team,
-    team_b: Team,
+    pub team_a: Team,
+    pub team_b: Team,
     events: Vec<Event>,
 }
 
 impl GameState {
-    pub fn new() -> GameState {
+    pub fn new() -> Self {
         GameState {
-            team_a: Team::new(),
-            team_b: Team::new(),
+            team_a: Team::new(TeamType::A),
+            team_b: Team::new(TeamType::B),
             events: vec![],
         }
+    }
+}
+
+impl Default for GameState {
+    fn default() -> Self {
+        Self::new()
     }
 }
 
@@ -26,7 +32,7 @@ struct Overs {
 }
 
 impl Overs {
-    fn new() -> Overs {
+    fn new() -> Self {
         Overs { overs: 0, balls: 0 }
     }
 }
@@ -40,7 +46,7 @@ struct Extras {
 }
 
 impl Extras {
-    fn new() -> Extras {
+    fn new() -> Self {
         Extras {
             wides: 0,
             no_balls: 0,

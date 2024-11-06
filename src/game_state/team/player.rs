@@ -12,7 +12,7 @@ pub struct Player {
 }
 
 impl Player {
-    pub fn new(first_name: &str, last_name: &str) -> Player {
+    pub fn new(first_name: &str, last_name: &str) -> Self {
         Player {
             first_name: String::from(first_name),
             last_name: String::from(last_name),
