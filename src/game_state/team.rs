@@ -1,8 +1,9 @@
 mod player;
+
 use player::Player;
 
 pub struct Team {
-    players: Vec<Player>,
+    pub players: Vec<Player>,
     team_type: TeamType,
     pub runs: u32,
     pub wickets: u32,
@@ -25,6 +26,10 @@ impl Team {
             runs: 0,
             wickets: 0,
         }
+    }
+
+    pub fn add_player(&mut self, first_name: &str, last_name: &str) {
+        self.players.push(Player::new(first_name, last_name));
     }
 }
 

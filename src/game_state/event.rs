@@ -3,6 +3,20 @@ use iced::widget::{container, text, Container};
 
 #[derive(Debug, Clone)]
 pub enum Event {
+    AppEvent(AppEvent),
+    GameEvent(GameEvent),
+}
+
+#[derive(Debug, Clone)]
+pub enum AppEvent {
+    FirstNameChanged(String),
+    LastNameChanged(String),
+    SubmitName,
+    SubmitTeam,
+}
+
+#[derive(Debug, Clone)]
+pub enum GameEvent {
     Runs(u32),
     Extra(Extra),
     Wicket,
@@ -12,7 +26,7 @@ pub enum Event {
     EndInnings(TeamType),
 }
 
-impl Event {
+impl GameEvent {
     pub fn to_container(&self) -> Container<Event> {
         let container_text = match self {
             Self::Runs(runs) => format!(

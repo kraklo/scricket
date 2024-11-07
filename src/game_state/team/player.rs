@@ -1,4 +1,6 @@
-use crate::game_state::{Extras, HowOut, Overs};
+use super::super::Event;
+use super::super::{Extras, HowOut, Overs};
+use iced::widget::{container, text, Container};
 
 pub struct Player {
     first_name: String,
@@ -23,5 +25,15 @@ impl Player {
             overs_bowled: Overs::new(),
             extras: Extras::new(),
         }
+    }
+}
+
+impl Player {
+    pub fn to_container(&self) -> Container<Event> {
+        container(text(format!(
+            "{first_name} {last_name}",
+            first_name = self.first_name,
+            last_name = self.last_name
+        )))
     }
 }
