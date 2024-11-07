@@ -1,5 +1,6 @@
 mod player;
 
+use super::Overs;
 use player::Player;
 
 pub struct Team {
@@ -7,6 +8,7 @@ pub struct Team {
     team_name: String,
     pub runs: u32,
     pub wickets: u32,
+    pub overs: Overs,
 }
 
 impl Team {
@@ -16,6 +18,7 @@ impl Team {
             team_name: String::new(),
             runs: 0,
             wickets: 0,
+            overs: Overs::new(),
         }
     }
 

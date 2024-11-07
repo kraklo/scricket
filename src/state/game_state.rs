@@ -16,6 +16,16 @@ pub struct GameState {
 impl GameState {
     // ui
     pub fn update(&mut self, event: GameEvent) {
+        // add ball if needed
+        match event {
+            GameEvent::Runs(_) | GameEvent::Wicket => {
+                let team = self.current_team_mut();
+                team.overs.add_ball();
+            }
+            _ => (),
+        }
+
+        // handle event otherwise
         match event {
             GameEvent::Runs(runs) => self.team_a.runs += runs,
             GameEvent::Wicket => self.team_a.wickets += 1,
@@ -26,11 +36,18 @@ impl GameState {
     }
 
     pub fn view(&self) -> Element<Event> {
+        let team = self.current_team();
+
         container(column![
             text(format!(
                 "{wickets}/{runs}",
-                wickets = self.team_a.wickets,
-                runs = self.team_a.runs
+                wickets = team.wickets,
+                runs = team.runs
+            )),
+            text(format!(
+                "Overs: {overs}.{balls}",
+                overs = team.overs.overs,
+                balls = team.overs.balls
             )),
             row![
                 button("0").on_press(Event::GameEvent(GameEvent::Runs(0))),
@@ -129,6 +146,10 @@ struct Overs {
 impl Overs {
     fn new() -> Self {
         Overs { overs: 0, balls: 0 }
+    }
+
+    fn add_ball(&mut self) {
+        self.balls += 1;
     }
 }
 
