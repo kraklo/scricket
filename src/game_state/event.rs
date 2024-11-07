@@ -13,6 +13,8 @@ pub enum AppEvent {
     LastNameChanged(String),
     SubmitName,
     SubmitTeam,
+    LoadGame,
+    NewGame,
 }
 
 #[derive(Debug, Clone)]

@@ -20,6 +20,8 @@ impl State {
     fn update(&mut self, event: Event) {
         match event {
             Event::AppEvent(event) => match event {
+                AppEvent::LoadGame => todo!(),
+                AppEvent::NewGame => self.page = Page::TeamEntry,
                 AppEvent::FirstNameChanged(first_name) => self.first_name_input = first_name,
                 AppEvent::LastNameChanged(last_name) => self.last_name_input = last_name,
                 AppEvent::SubmitName => {
@@ -41,9 +43,18 @@ impl State {
 
     fn view(&self) -> Element<Event> {
         match self.page {
+            Page::Start => self.start(),
             Page::TeamEntry => self.enter_player(),
             Page::Scoring => self.game_state.view(),
         }
+    }
+
+    fn start(&self) -> Element<Event> {
+        row![
+            button("Load Game").on_press(Event::AppEvent(AppEvent::LoadGame)),
+            button("New Game").on_press(Event::AppEvent(AppEvent::NewGame)),
+        ]
+        .into()
     }
 
     fn enter_player(&self) -> Element<Event> {
@@ -70,7 +81,7 @@ impl State {
 impl Default for State {
     fn default() -> Self {
         State {
-            page: Page::TeamEntry,
+            page: Page::Start,
             game_state: GameState::new(),
             first_name_input: String::new(),
             last_name_input: String::new(),
@@ -79,6 +90,7 @@ impl Default for State {
 }
 
 enum Page {
+    Start,
     TeamEntry,
     Scoring,
 }
