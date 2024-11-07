@@ -73,8 +73,8 @@ impl GameState {
     // business logic
     pub fn new() -> Self {
         GameState {
-            team_a: Team::new(TeamType::A),
-            team_b: Team::new(TeamType::B),
+            team_a: Team::new(),
+            team_b: Team::new(),
             events: vec![],
             current_team: TeamType::A,
         }
