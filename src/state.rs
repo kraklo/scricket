@@ -10,6 +10,7 @@ pub struct State {
     game_state: GameState,
     first_name_input: String,
     last_name_input: String,
+    order: u32,
 }
 
 impl State {
@@ -67,15 +68,22 @@ impl State {
             AppEvent::FirstNameChanged(first_name) => self.first_name_input = first_name,
             AppEvent::LastNameChanged(last_name) => self.last_name_input = last_name,
             AppEvent::SubmitName => {
-                self.game_state
-                    .add_player(&self.first_name_input, &self.last_name_input);
+                self.game_state.add_player(
+                    &self.first_name_input,
+                    &self.last_name_input,
+                    self.order,
+                );
                 self.first_name_input.clear();
                 self.last_name_input.clear();
+                self.order += 1;
             }
-            AppEvent::SubmitTeam => match self.game_state.current_team {
-                TeamType::A => self.game_state.change_team(),
-                TeamType::B => self.page = Page::Scoring,
-            },
+            AppEvent::SubmitTeam => {
+                match self.game_state.batting_team {
+                    TeamType::A => self.game_state.change_team(),
+                    TeamType::B => self.page = Page::Scoring,
+                }
+                self.order = 0;
+            }
         }
     }
 }
@@ -87,6 +95,7 @@ impl Default for State {
             game_state: GameState::new(),
             first_name_input: String::new(),
             last_name_input: String::new(),
+            order: 0,
         }
     }
 }

@@ -4,30 +4,25 @@ mod team;
 use event::{Event, GameEvent};
 use iced::widget::{button, column, container, row, scrollable, text, Column};
 use iced::Element;
+use team::player::Player;
 pub use team::{Team, TeamType};
 
 pub struct GameState {
     pub team_a: Team,
     pub team_b: Team,
+    pub batting_team: TeamType,
     events: Vec<GameEvent>,
-    pub current_team: TeamType,
+    on_strike_batter: Option<Player>,
+    off_strike_batter: Option<Player>,
+    bowler: Option<Player>,
 }
 
 impl GameState {
     // ui
     pub fn update(&mut self, event: GameEvent) {
-        // add ball if needed
-        match event {
-            GameEvent::Runs(_) | GameEvent::Wicket => {
-                let team = self.current_team_mut();
-                team.overs.add_ball();
-            }
-            _ => (),
-        }
-
         // handle event otherwise
         match event {
-            GameEvent::Runs(runs) => self.team_a.runs += runs,
+            GameEvent::Runs(runs) => self.add_runs(runs),
             GameEvent::Wicket => self.team_a.wickets += 1,
             _ => (),
         }
@@ -36,7 +31,7 @@ impl GameState {
     }
 
     pub fn view(&self) -> Element<Event> {
-        let team = self.current_team();
+        let team = self.batting_team();
 
         container(column![
             text(format!(
@@ -74,7 +69,7 @@ impl GameState {
     }
 
     pub fn player_column(&self) -> Column<Event> {
-        let team = self.current_team();
+        let team = self.batting_team();
 
         let mut column = Column::new();
 
@@ -93,12 +88,15 @@ impl GameState {
             team_a: Team::new(),
             team_b: Team::new(),
             events: vec![],
-            current_team: TeamType::A,
+            batting_team: TeamType::A,
+            on_strike_batter: None,
+            off_strike_batter: None,
+            bowler: None,
         }
     }
 
-    fn current_team(&self) -> &Team {
-        let team = match self.current_team {
+    fn batting_team(&self) -> &Team {
+        let team = match self.batting_team {
             TeamType::A => &self.team_a,
             TeamType::B => &self.team_b,
         };
@@ -106,8 +104,8 @@ impl GameState {
         team
     }
 
-    fn current_team_mut(&mut self) -> &mut Team {
-        let team = match self.current_team {
+    fn batting_team_mut(&mut self) -> &mut Team {
+        let team = match self.batting_team {
             TeamType::A => &mut self.team_a,
             TeamType::B => &mut self.team_b,
         };
@@ -119,26 +117,57 @@ impl GameState {
         self.events.push(event);
     }
 
-    pub fn add_player(&mut self, first_name: &str, last_name: &str) {
-        let team = self.current_team_mut();
-        team.add_player(first_name, last_name);
+    pub fn add_player(&mut self, first_name: &str, last_name: &str, batting_order: u32) {
+        let team = self.batting_team_mut();
+        team.add_player(first_name, last_name, batting_order);
     }
 
     pub fn team_length(&self) -> usize {
-        let team = self.current_team();
+        let team = self.batting_team();
 
         team.players.len()
     }
 
     pub fn change_team(&mut self) {
-        match self.current_team {
-            TeamType::A => self.current_team = TeamType::B,
-            TeamType::B => self.current_team = TeamType::B,
+        match self.batting_team {
+            TeamType::A => self.batting_team = TeamType::B,
+            TeamType::B => self.batting_team = TeamType::B,
         };
+    }
+
+    fn change_strike(&mut self) {
+        std::mem::swap(&mut self.on_strike_batter, &mut self.off_strike_batter);
+    }
+
+    fn add_runs(&mut self, runs: u32) {
+        let on_strike_batter = self
+            .on_strike_batter
+            .as_mut()
+            .expect("A player should be on strike when add_runs is callled");
+
+        let bowler = self
+            .bowler
+            .as_mut()
+            .expect("A player should be bowling when add_runs is callled");
+
+        bowler.overs_bowled.add_ball();
+        bowler.runs_conceded += runs;
+
+        on_strike_batter.balls_faced += 1;
+        on_strike_batter.runs_scored += runs;
+
+        let team = self.batting_team_mut();
+        team.runs += runs;
+        team.overs.add_ball();
+
+        if runs % 2 == 1 {
+            self.change_strike();
+        }
     }
 }
 
-struct Overs {
+#[derive(Clone)]
+pub struct Overs {
     overs: u32,
     balls: u32,
 }
@@ -150,9 +179,15 @@ impl Overs {
 
     fn add_ball(&mut self) {
         self.balls += 1;
+
+        if self.balls == 6 {
+            self.overs += 1;
+            self.balls = 0;
+        }
     }
 }
 
+#[derive(Clone)]
 struct Extras {
     wides: u32,
     no_balls: u32,
@@ -173,6 +208,7 @@ impl Extras {
     }
 }
 
+#[derive(Clone)]
 enum HowOut {
     DidNotBat,
     NotOut,
@@ -189,6 +225,7 @@ enum HowOut {
     Retired(Retired),
 }
 
+#[derive(Clone)]
 enum Retired {
     NotOut,
     Hurt,

@@ -1,4 +1,4 @@
-mod player;
+pub mod player;
 
 use super::Overs;
 use player::Player;
@@ -22,8 +22,9 @@ impl Team {
         }
     }
 
-    pub fn add_player(&mut self, first_name: &str, last_name: &str) {
-        self.players.push(Player::new(first_name, last_name));
+    pub fn add_player(&mut self, first_name: &str, last_name: &str, batting_order: u32) {
+        self.players
+            .push(Player::new(first_name, last_name, batting_order));
     }
 }
 
