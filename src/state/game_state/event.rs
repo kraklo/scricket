@@ -1,4 +1,4 @@
-use super::TeamType;
+use super::{Player, TeamType};
 use iced::widget::{container, text, Container};
 
 #[derive(Debug, Clone)]
@@ -15,6 +15,10 @@ pub enum AppEvent {
     SubmitTeam,
     LoadGame,
     NewGame,
+    BatterSelected(u32),
+    SubmitBatter,
+    BowlerSelected(u32),
+    SubmitBowler,
 }
 
 #[derive(Debug, Clone)]
@@ -26,6 +30,9 @@ pub enum GameEvent {
     EndOver,
     StartInnings(TeamType),
     EndInnings(TeamType),
+    SelectOnStrike(Player),
+    SelectOffStrike(Player),
+    SelectBowler(Player),
 }
 
 impl GameEvent {

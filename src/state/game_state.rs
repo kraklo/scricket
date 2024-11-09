@@ -2,9 +2,9 @@ pub mod event;
 mod team;
 
 use event::{Event, GameEvent};
-use iced::widget::{button, column, container, row, scrollable, text, Column};
+use iced::widget::{button, column, row, scrollable, text, Column};
 use iced::Element;
-use team::player::Player;
+pub use team::player::Player;
 pub use team::{Team, TeamType};
 
 pub struct GameState {
@@ -14,16 +14,24 @@ pub struct GameState {
     events: Vec<GameEvent>,
     on_strike_batter: Option<Player>,
     off_strike_batter: Option<Player>,
-    bowler: Option<Player>,
+    pub bowler: Option<Player>,
 }
 
 impl GameState {
     // ui
     pub fn update(&mut self, event: GameEvent) {
-        // handle event otherwise
         match event {
             GameEvent::Runs(runs) => self.add_runs(runs),
             GameEvent::Wicket => self.team_a.wickets += 1,
+            GameEvent::SelectOnStrike(ref player) => {
+                self.on_strike_batter = Some(self.batting_team_mut().take_player(player.clone()))
+            }
+            GameEvent::SelectOffStrike(ref player) => {
+                self.off_strike_batter = Some(self.batting_team_mut().take_player(player.clone()))
+            }
+            GameEvent::SelectBowler(ref player) => {
+                self.bowler = Some(self.bowling_team_mut().take_player(player.clone()))
+            }
             _ => (),
         }
 
@@ -33,7 +41,7 @@ impl GameState {
     pub fn view(&self) -> Element<Event> {
         let team = self.batting_team();
 
-        container(column![
+        let mut content = column![
             text(format!(
                 "{wickets}/{runs}",
                 wickets = team.wickets,
@@ -43,19 +51,33 @@ impl GameState {
                 "Overs: {overs}.{balls}",
                 overs = team.overs.overs,
                 balls = team.overs.balls
-            )),
-            row![
-                button("0").on_press(Event::GameEvent(GameEvent::Runs(0))),
-                button("1").on_press(Event::GameEvent(GameEvent::Runs(1))),
-                button("2").on_press(Event::GameEvent(GameEvent::Runs(2))),
-                button("3").on_press(Event::GameEvent(GameEvent::Runs(3))),
-                button("4").on_press(Event::GameEvent(GameEvent::Runs(4))),
-                button("6").on_press(Event::GameEvent(GameEvent::Runs(6))),
-                button("wicket").on_press(Event::GameEvent(GameEvent::Wicket)),
-            ],
-            scrollable(self.event_column())
-        ])
-        .into()
+            ))
+        ];
+
+        if let Some(player) = &self.on_strike_batter {
+            content = content.push(player.to_batting_container());
+        }
+
+        if let Some(player) = &self.off_strike_batter {
+            content = content.push(player.to_batting_container());
+        }
+
+        if let Some(player) = &self.bowler {
+            content = content.push(player.to_bowling_container());
+        }
+
+        content = content.push(row![
+            button("0").on_press(Event::GameEvent(GameEvent::Runs(0))),
+            button("1").on_press(Event::GameEvent(GameEvent::Runs(1))),
+            button("2").on_press(Event::GameEvent(GameEvent::Runs(2))),
+            button("3").on_press(Event::GameEvent(GameEvent::Runs(3))),
+            button("4").on_press(Event::GameEvent(GameEvent::Runs(4))),
+            button("6").on_press(Event::GameEvent(GameEvent::Runs(6))),
+            button("wicket").on_press(Event::GameEvent(GameEvent::Wicket)),
+        ]);
+        content = content.push(scrollable(self.event_column()));
+
+        content.into()
     }
 
     fn event_column(&self) -> Column<Event> {
@@ -70,11 +92,12 @@ impl GameState {
 
     pub fn player_column(&self) -> Column<Event> {
         let team = self.batting_team();
-
         let mut column = Column::new();
 
         for player in &team.players {
-            column = column.push(player.to_container());
+            if let Some(player) = player {
+                column = column.push(player.to_container());
+            }
         }
 
         column
@@ -95,7 +118,7 @@ impl GameState {
         }
     }
 
-    fn batting_team(&self) -> &Team {
+    pub fn batting_team(&self) -> &Team {
         let team = match self.batting_team {
             TeamType::A => &self.team_a,
             TeamType::B => &self.team_b,
@@ -104,10 +127,28 @@ impl GameState {
         team
     }
 
-    fn batting_team_mut(&mut self) -> &mut Team {
+    pub fn batting_team_mut(&mut self) -> &mut Team {
         let team = match self.batting_team {
             TeamType::A => &mut self.team_a,
             TeamType::B => &mut self.team_b,
+        };
+
+        team
+    }
+
+    pub fn bowling_team(&self) -> &Team {
+        let team = match self.batting_team {
+            TeamType::A => &self.team_b,
+            TeamType::B => &self.team_a,
+        };
+
+        team
+    }
+
+    pub fn bowling_team_mut(&mut self) -> &mut Team {
+        let team = match self.batting_team {
+            TeamType::A => &mut self.team_b,
+            TeamType::B => &mut self.team_a,
         };
 
         team
@@ -164,9 +205,22 @@ impl GameState {
             self.change_strike();
         }
     }
+
+    pub fn batter_to_replace(&self) -> Option<ReplaceBatter> {
+        match self.on_strike_batter {
+            None => Some(ReplaceBatter::OnStrike),
+            Some(_) => {
+                if let Some(_) = self.off_strike_batter {
+                    return None;
+                }
+
+                Some(ReplaceBatter::OffStrike)
+            }
+        }
+    }
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Overs {
     overs: u32,
     balls: u32,
@@ -187,7 +241,7 @@ impl Overs {
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 struct Extras {
     wides: u32,
     no_balls: u32,
@@ -208,7 +262,7 @@ impl Extras {
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 enum HowOut {
     DidNotBat,
     NotOut,
@@ -225,8 +279,13 @@ enum HowOut {
     Retired(Retired),
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 enum Retired {
     NotOut,
     Hurt,
+}
+
+pub enum ReplaceBatter {
+    OnStrike,
+    OffStrike,
 }
