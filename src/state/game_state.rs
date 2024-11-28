@@ -2,7 +2,7 @@ pub mod event;
 mod team;
 
 use event::{Event, GameEvent};
-use iced::widget::{button, column, row, scrollable, text, Column};
+use iced::widget::{button, column, row, scrollable, text, Column, Row};
 use iced::Element;
 pub use team::player::{Player, PlayerType};
 pub use team::{Team, TeamType};
@@ -64,11 +64,21 @@ impl GameState {
         ];
 
         if let Some(player) = &self.batter_a {
-            content = content.push(player.to_batting_container());
+            let mut batting_container = Row::<Event>::new();
+            if self.on_strike_batter == PlayerType::A {
+                batting_container = batting_container.push(text("*"));
+            }
+            batting_container = batting_container.push(player.to_batting_container());
+            content = content.push(batting_container);
         }
 
         if let Some(player) = &self.batter_b {
-            content = content.push(player.to_batting_container());
+            let mut batting_container = Row::<Event>::new();
+            if self.on_strike_batter == PlayerType::B {
+                batting_container = batting_container.push(text("*"));
+            }
+            batting_container = batting_container.push(player.to_batting_container());
+            content = content.push(batting_container);
         }
 
         if let Some(player) = &self.bowler {
