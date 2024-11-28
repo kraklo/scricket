@@ -67,3 +67,9 @@ impl Display for Player {
         write!(f, "{} {}", self.first_name, self.last_name)
     }
 }
+
+#[derive(PartialEq)]
+pub enum PlayerType {
+    A,
+    B,
+}

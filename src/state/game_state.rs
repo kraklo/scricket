@@ -4,7 +4,7 @@ mod team;
 use event::{Event, GameEvent};
 use iced::widget::{button, column, row, scrollable, text, Column};
 use iced::Element;
-pub use team::player::Player;
+pub use team::player::{Player, PlayerType};
 pub use team::{Team, TeamType};
 
 pub struct GameState {
@@ -12,8 +12,9 @@ pub struct GameState {
     pub team_b: Team,
     pub batting_team: TeamType,
     events: Vec<GameEvent>,
-    on_strike_batter: Option<Player>,
-    off_strike_batter: Option<Player>,
+    batter_a: Option<Player>,
+    batter_b: Option<Player>,
+    on_strike_batter: PlayerType,
     pub bowler: Option<Player>,
 }
 
@@ -24,10 +25,18 @@ impl GameState {
             GameEvent::Runs(runs) => self.add_runs(runs),
             GameEvent::Wicket => self.team_a.wickets += 1,
             GameEvent::SelectOnStrike(ref player) => {
-                self.on_strike_batter = Some(self.batting_team_mut().take_player(player.clone()))
+                let batter = Some(self.batting_team_mut().take_player(player.clone()));
+                match self.on_strike_batter {
+                    PlayerType::A => self.batter_a = batter,
+                    PlayerType::B => self.batter_b = batter,
+                }
             }
             GameEvent::SelectOffStrike(ref player) => {
-                self.off_strike_batter = Some(self.batting_team_mut().take_player(player.clone()))
+                let batter = Some(self.batting_team_mut().take_player(player.clone()));
+                match self.on_strike_batter {
+                    PlayerType::A => self.batter_b = batter,
+                    PlayerType::B => self.batter_a = batter,
+                }
             }
             GameEvent::SelectBowler(ref player) => {
                 self.bowler = Some(self.bowling_team_mut().take_player(player.clone()))
@@ -54,11 +63,11 @@ impl GameState {
             ))
         ];
 
-        if let Some(player) = &self.on_strike_batter {
+        if let Some(player) = &self.batter_a {
             content = content.push(player.to_batting_container());
         }
 
-        if let Some(player) = &self.off_strike_batter {
+        if let Some(player) = &self.batter_b {
             content = content.push(player.to_batting_container());
         }
 
@@ -112,8 +121,9 @@ impl GameState {
             team_b: Team::new(),
             events: vec![],
             batting_team: TeamType::A,
-            on_strike_batter: None,
-            off_strike_batter: None,
+            batter_a: None,
+            batter_b: None,
+            on_strike_batter: PlayerType::A,
             bowler: None,
         }
     }
@@ -177,14 +187,19 @@ impl GameState {
     }
 
     fn change_strike(&mut self) {
-        std::mem::swap(&mut self.on_strike_batter, &mut self.off_strike_batter);
+        self.on_strike_batter = match self.on_strike_batter {
+            PlayerType::A => PlayerType::B,
+            PlayerType::B => PlayerType::A,
+        }
     }
 
     fn add_runs(&mut self, runs: u32) {
         let on_strike_batter = self
-            .on_strike_batter
-            .as_mut()
+            .on_strike_batter_mut()
             .expect("A player should be on strike when add_runs is callled");
+
+        on_strike_batter.balls_faced += 1;
+        on_strike_batter.runs_scored += runs;
 
         let bowler = self
             .bowler
@@ -193,9 +208,6 @@ impl GameState {
 
         bowler.overs_bowled.add_ball();
         bowler.runs_conceded += runs;
-
-        on_strike_batter.balls_faced += 1;
-        on_strike_batter.runs_scored += runs;
 
         let team = self.batting_team_mut();
         team.runs += runs;
@@ -207,15 +219,46 @@ impl GameState {
     }
 
     pub fn batter_to_replace(&self) -> Option<ReplaceBatter> {
-        match self.on_strike_batter {
-            None => Some(ReplaceBatter::OnStrike),
-            Some(_) => {
-                if let Some(_) = self.off_strike_batter {
-                    return None;
-                }
+        if (self.on_strike_batter == PlayerType::A && self.batter_a == None)
+            || (self.on_strike_batter == PlayerType::B && self.batter_b == None)
+        {
+            return Some(ReplaceBatter::OnStrike);
+        }
 
-                Some(ReplaceBatter::OffStrike)
-            }
+        if (self.on_strike_batter == PlayerType::B && self.batter_a == None)
+            || (self.on_strike_batter == PlayerType::A && self.batter_b == None)
+        {
+            return Some(ReplaceBatter::OffStrike);
+        }
+
+        None
+    }
+
+    pub fn on_strike_batter(&self) -> &Option<Player> {
+        match self.on_strike_batter {
+            PlayerType::A => &self.batter_a,
+            PlayerType::B => &self.batter_b,
+        }
+    }
+
+    pub fn off_strike_batter(&self) -> &Option<Player> {
+        match self.on_strike_batter {
+            PlayerType::A => &self.batter_b,
+            PlayerType::B => &self.batter_a,
+        }
+    }
+
+    pub fn on_strike_batter_mut(&mut self) -> Option<&mut Player> {
+        match self.on_strike_batter {
+            PlayerType::A => self.batter_a.as_mut(),
+            PlayerType::B => self.batter_b.as_mut(),
+        }
+    }
+
+    pub fn off_strike_batter_mut(&mut self) -> Option<&mut Player> {
+        match self.on_strike_batter {
+            PlayerType::A => self.batter_b.as_mut(),
+            PlayerType::B => self.batter_a.as_mut(),
         }
     }
 }
