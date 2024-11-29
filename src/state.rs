@@ -1,208 +1,32 @@
+pub mod app_state;
 pub mod game_state;
 
-use game_state::event::{AppEvent, Event, GameEvent};
-use game_state::{GameState, ReplaceBatter, TeamType};
-use iced::widget::{button, column, radio, row, text, text_input, Column};
+use app_state::{AppState, Page};
+use game_state::event::{Event, GameEvent};
+use game_state::GameState;
 use iced::Element;
 
+#[derive(Clone)]
 pub struct State {
-    page: Page,
     game_state: GameState,
-    first_name_input: String,
-    last_name_input: String,
-    selected_player: Option<u32>,
-    order: u32,
+    app_state: AppState,
 }
 
 impl State {
     // ui
     pub fn update(&mut self, event: Event) {
         match event {
-            Event::AppEvent(app_event) => self.handle_app_event(app_event),
+            Event::AppEvent(app_event) => {
+                self.game_state = self.app_state.update(app_event, self.game_state.clone())
+            }
             Event::GameEvent(game_event) => self.game_state.update(game_event),
         }
     }
 
     pub fn view(&self) -> Element<Event> {
-        match self.page {
-            Page::Start => self.start(),
-            Page::TeamEntry => self.enter_player(),
+        match self.app_state.page {
             Page::Scoring => self.game_state.view(),
-            Page::SelectBatter => match self.game_state.batter_to_replace() {
-                Some(batter) => match batter {
-                    ReplaceBatter::OnStrike => self.select_on_strike_batter(),
-                    ReplaceBatter::OffStrike => self.select_off_strike_batter(),
-                },
-                None => panic!("There should be a batter to select when on this page"),
-            },
-            Page::SelectBowler => match self.game_state.bowler {
-                None => self.select_bowler(),
-                Some(_) => panic!("There should be a bowler to select when on this page"),
-            },
-        }
-    }
-
-    fn start(&self) -> Element<Event> {
-        row![
-            button("Load Game").on_press(Event::AppEvent(AppEvent::LoadGame)),
-            button("New Game").on_press(Event::AppEvent(AppEvent::NewGame)),
-        ]
-        .into()
-    }
-
-    fn enter_player(&self) -> Element<Event> {
-        let mut column = column![
-            row![
-                text_input("First Name", &self.first_name_input)
-                    .on_input(|input| Event::AppEvent(AppEvent::FirstNameChanged(input))),
-                text_input("Last Name", &self.last_name_input)
-                    .on_input(|input| Event::AppEvent(AppEvent::LastNameChanged(input))),
-                button("Submit").on_press(Event::AppEvent(AppEvent::SubmitName)),
-            ],
-            self.game_state.player_column(),
-        ];
-
-        if self.game_state.team_length() >= 11 {
-            column =
-                column.push(button("Confirm Team").on_press(Event::AppEvent(AppEvent::SubmitTeam)));
-        }
-
-        column.into()
-    }
-
-    fn select_batter(&self) -> Element<Event> {
-        let team = self.game_state.batting_team();
-        let mut column = Column::new();
-
-        for player in &team.players {
-            if let Some(player) = player {
-                column = column.push(radio(
-                    player.to_string(),
-                    player.batting_order,
-                    self.selected_player,
-                    |selection| Event::AppEvent(AppEvent::BatterSelected(selection)),
-                ));
-            };
-        }
-
-        if let Some(_) = self.selected_player {
-            column = column
-                .push(button("Select player").on_press(Event::AppEvent(AppEvent::SubmitBatter)));
-        }
-
-        column.into()
-    }
-
-    fn select_bowler(&self) -> Element<Event> {
-        let team = self.game_state.bowling_team();
-        let mut column = Column::new();
-        column = column.push(text("Select bowler"));
-
-        for player in &team.players {
-            if let Some(player) = player {
-                column = column.push(radio(
-                    player.to_string(),
-                    player.batting_order,
-                    self.selected_player,
-                    |selection| Event::AppEvent(AppEvent::BowlerSelected(selection)),
-                ));
-            };
-        }
-
-        if let Some(_) = self.selected_player {
-            column = column
-                .push(button("Select player").on_press(Event::AppEvent(AppEvent::SubmitBowler)));
-        }
-
-        column.into()
-    }
-
-    fn select_on_strike_batter(&self) -> Element<Event> {
-        let mut column = column![text("Select on strike batter")];
-        column = column.push(self.select_batter());
-        column.into()
-    }
-
-    fn select_off_strike_batter(&self) -> Element<Event> {
-        let mut column = column![text("Select off strike batter")];
-        column = column.push(self.select_batter());
-        column.into()
-    }
-}
-
-impl State {
-    // business logic
-    fn handle_app_event(&mut self, app_event: AppEvent) {
-        match app_event {
-            AppEvent::LoadGame => todo!(),
-            AppEvent::NewGame => self.page = Page::TeamEntry,
-            AppEvent::FirstNameChanged(first_name) => self.first_name_input = first_name,
-            AppEvent::LastNameChanged(last_name) => self.last_name_input = last_name,
-            AppEvent::SubmitName => {
-                self.game_state.add_player(
-                    &self.first_name_input,
-                    &self.last_name_input,
-                    self.order,
-                );
-                self.first_name_input.clear();
-                self.last_name_input.clear();
-                self.order += 1;
-            }
-            AppEvent::SubmitTeam => {
-                match self.game_state.batting_team {
-                    TeamType::A => self.game_state.change_team(),
-                    TeamType::B => {
-                        self.game_state.change_team();
-                        self.page = Page::SelectBatter;
-                    }
-                }
-                self.order = 0;
-            }
-            AppEvent::BatterSelected(order) | AppEvent::BowlerSelected(order) => {
-                self.selected_player = Some(order)
-            }
-            AppEvent::SubmitBatter => {
-                if let Some(batter) = self.game_state.batter_to_replace() {
-                    match batter {
-                        ReplaceBatter::OnStrike => {
-                            self.game_state.update(GameEvent::SelectOnStrike(
-                                self.game_state
-                                    .batting_team()
-                                    .player_from_order(
-                                        self.selected_player.expect("Batter should be selected"),
-                                    )
-                                    .expect("Selected player should exist"),
-                            ))
-                        }
-                        ReplaceBatter::OffStrike => {
-                            self.game_state.update(GameEvent::SelectOffStrike(
-                                self.game_state
-                                    .batting_team()
-                                    .player_from_order(
-                                        self.selected_player.expect("Batter should be selected"),
-                                    )
-                                    .expect("Selected player should exist"),
-                            ))
-                        }
-                    }
-                }
-
-                if let None = self.game_state.batter_to_replace() {
-                    self.page = match self.game_state.bowler {
-                        Some(_) => Page::Scoring,
-                        None => Page::SelectBowler,
-                    }
-                }
-            }
-            AppEvent::SubmitBowler => {
-                self.game_state.update(GameEvent::SelectBowler(
-                    self.game_state
-                        .bowling_team()
-                        .player_from_order(self.selected_player.expect("Batter should be selected"))
-                        .expect("Selected player should exist"),
-                ));
-                self.page = Page::Scoring;
-            }
+            _ => self.app_state.view(&self.game_state),
         }
     }
 }
@@ -210,20 +34,8 @@ impl State {
 impl Default for State {
     fn default() -> Self {
         State {
-            page: Page::Start,
             game_state: GameState::new(),
-            first_name_input: String::new(),
-            last_name_input: String::new(),
-            selected_player: None,
-            order: 0,
+            app_state: AppState::new(),
         }
     }
-}
-
-enum Page {
-    Start,
-    TeamEntry,
-    Scoring,
-    SelectBatter,
-    SelectBowler,
 }

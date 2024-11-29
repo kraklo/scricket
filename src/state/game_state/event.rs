@@ -1,24 +1,11 @@
 use super::{Player, TeamType};
+use crate::state::app_state::event::AppEvent;
 use iced::widget::{container, text, Container};
 
 #[derive(Debug, Clone)]
 pub enum Event {
     AppEvent(AppEvent),
     GameEvent(GameEvent),
-}
-
-#[derive(Debug, Clone)]
-pub enum AppEvent {
-    FirstNameChanged(String),
-    LastNameChanged(String),
-    SubmitName,
-    SubmitTeam,
-    LoadGame,
-    NewGame,
-    BatterSelected(u32),
-    SubmitBatter,
-    BowlerSelected(u32),
-    SubmitBowler,
 }
 
 #[derive(Debug, Clone)]

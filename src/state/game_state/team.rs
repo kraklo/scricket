@@ -3,6 +3,7 @@ pub mod player;
 use super::Overs;
 use player::Player;
 
+#[derive(Clone)]
 pub struct Team {
     pub players: Vec<Option<Player>>,
     team_name: String,

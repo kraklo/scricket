@@ -68,7 +68,7 @@ impl Display for Player {
     }
 }
 
-#[derive(PartialEq)]
+#[derive(Clone, PartialEq)]
 pub enum PlayerType {
     A,
     B,

@@ -1,5 +1,5 @@
 pub mod event;
-mod team;
+pub mod team;
 
 use event::{Event, GameEvent};
 use iced::widget::{button, column, row, scrollable, text, Column, Row};
@@ -7,6 +7,7 @@ use iced::Element;
 pub use team::player::{Player, PlayerType};
 pub use team::{Team, TeamType};
 
+#[derive(Clone)]
 pub struct GameState {
     pub team_a: Team,
     pub team_b: Team,
