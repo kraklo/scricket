@@ -5,8 +5,9 @@ use app_state::{AppState, Page};
 use game_state::event::{Event, GameEvent};
 use game_state::GameState;
 use iced::Element;
+use serde::{Deserialize, Serialize};
 
-#[derive(Clone)]
+#[derive(Clone, Deserialize, Serialize)]
 pub struct State {
     game_state: GameState,
     app_state: AppState,

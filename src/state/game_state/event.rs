@@ -1,6 +1,7 @@
 use super::{Player, TeamType};
 use crate::state::app_state::event::AppEvent;
 use iced::widget::{container, text, Container};
+use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone)]
 pub enum Event {
@@ -8,7 +9,7 @@ pub enum Event {
     GameEvent(GameEvent),
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Deserialize, Serialize)]
 pub enum GameEvent {
     Runs(u32),
     Extra(Extra),
@@ -37,13 +38,13 @@ impl GameEvent {
     }
 }
 
-#[derive(Debug, Clone)]
-struct Extra {
+#[derive(Debug, Clone, Deserialize, Serialize)]
+pub struct Extra {
     runs: u32,
     extra_type: ExtraType,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Deserialize, Serialize)]
 enum ExtraType {
     Wide,
     NoBall,

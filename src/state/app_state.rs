@@ -7,8 +7,9 @@ use crate::state::GameEvent;
 use event::AppEvent;
 use iced::widget::{button, column, radio, row, text, text_input, Column};
 use iced::Element;
+use serde::{Deserialize, Serialize};
 
-#[derive(Clone)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct AppState {
     pub page: Page,
     first_name_input: String,
@@ -205,7 +206,7 @@ impl AppState {
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, Serialize, Deserialize)]
 pub enum Page {
     Start,
     TeamEntry,

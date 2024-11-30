@@ -1,9 +1,10 @@
 use super::super::Event;
 use super::super::{Extras, HowOut, Overs};
 use iced::widget::{container, text, Container};
+use serde::{Deserialize, Serialize};
 use std::fmt::Display;
 
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Player {
     first_name: String,
     last_name: String,
@@ -68,7 +69,7 @@ impl Display for Player {
     }
 }
 
-#[derive(Clone, PartialEq)]
+#[derive(Clone, PartialEq, Serialize, Deserialize)]
 pub enum PlayerType {
     A,
     B,

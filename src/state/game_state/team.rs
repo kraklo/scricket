@@ -2,8 +2,9 @@ pub mod player;
 
 use super::Overs;
 use player::Player;
+use serde::{Deserialize, Serialize};
 
-#[derive(Clone)]
+#[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct Team {
     pub players: Vec<Option<Player>>,
     team_name: String,
@@ -57,7 +58,7 @@ impl Team {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Deserialize, Serialize)]
 pub enum TeamType {
     A,
     B,

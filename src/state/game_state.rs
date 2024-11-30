@@ -4,10 +4,11 @@ pub mod team;
 use event::{Event, GameEvent};
 use iced::widget::{button, column, row, scrollable, text, Column, Row};
 use iced::Element;
+use serde::{Deserialize, Serialize};
 pub use team::player::{Player, PlayerType};
 pub use team::{Team, TeamType};
 
-#[derive(Clone)]
+#[derive(Clone, Deserialize, Serialize)]
 pub struct GameState {
     pub team_a: Team,
     pub team_b: Team,
@@ -245,36 +246,15 @@ impl GameState {
         None
     }
 
-    pub fn on_strike_batter(&self) -> &Option<Player> {
-        match self.on_strike_batter {
-            PlayerType::A => &self.batter_a,
-            PlayerType::B => &self.batter_b,
-        }
-    }
-
-    pub fn off_strike_batter(&self) -> &Option<Player> {
-        match self.on_strike_batter {
-            PlayerType::A => &self.batter_b,
-            PlayerType::B => &self.batter_a,
-        }
-    }
-
     pub fn on_strike_batter_mut(&mut self) -> Option<&mut Player> {
         match self.on_strike_batter {
             PlayerType::A => self.batter_a.as_mut(),
             PlayerType::B => self.batter_b.as_mut(),
         }
     }
-
-    pub fn off_strike_batter_mut(&mut self) -> Option<&mut Player> {
-        match self.on_strike_batter {
-            PlayerType::A => self.batter_b.as_mut(),
-            PlayerType::B => self.batter_a.as_mut(),
-        }
-    }
 }
 
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Overs {
     overs: u32,
     balls: u32,
@@ -295,7 +275,7 @@ impl Overs {
     }
 }
 
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 struct Extras {
     wides: u32,
     no_balls: u32,
@@ -316,7 +296,7 @@ impl Extras {
     }
 }
 
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 enum HowOut {
     DidNotBat,
     NotOut,
@@ -333,7 +313,7 @@ enum HowOut {
     Retired(Retired),
 }
 
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 enum Retired {
     NotOut,
     Hurt,
