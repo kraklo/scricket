@@ -4,7 +4,6 @@ pub enum AppEvent {
     LastNameChanged(String),
     SubmitName,
     SubmitTeam,
-    LoadGame,
     NewGame,
     BatterSelected(u32),
     SubmitBatter,

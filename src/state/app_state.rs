@@ -21,7 +21,6 @@ pub struct AppState {
 impl AppState {
     pub fn update(&mut self, app_event: AppEvent, mut game_state: GameState) -> GameState {
         match app_event {
-            AppEvent::LoadGame => todo!(),
             AppEvent::NewGame => self.page = Page::TeamEntry,
             AppEvent::FirstNameChanged(first_name) => self.first_name_input = first_name,
             AppEvent::LastNameChanged(last_name) => self.last_name_input = last_name,
@@ -108,7 +107,7 @@ impl AppState {
 
     fn start(&self) -> Element<Event> {
         row![
-            button("Load Game").on_press(Event::AppEvent(AppEvent::LoadGame)),
+            button("Load Game").on_press(Event::LoadGame),
             button("New Game").on_press(Event::AppEvent(AppEvent::NewGame)),
         ]
         .into()

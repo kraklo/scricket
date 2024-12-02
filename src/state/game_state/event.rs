@@ -7,6 +7,8 @@ use serde::{Deserialize, Serialize};
 pub enum Event {
     AppEvent(AppEvent),
     GameEvent(GameEvent),
+    LoadGame,
+    SaveGame,
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
