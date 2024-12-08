@@ -23,20 +23,22 @@ pub enum GameEvent {
     SelectOnStrike(Player),
     SelectOffStrike(Player),
     SelectBowler(Player),
+    AddPlayer(Player),
+    SubmitTeam,
 }
 
 impl GameEvent {
-    pub fn to_container(&self) -> Container<Event> {
+    pub fn to_container(&self) -> Option<Container<Event>> {
         let container_text = match self {
             Self::Runs(runs) => format!(
                 "{runs} run{plural}",
                 plural = if *runs == 1 { "" } else { "s" }
             ),
             Self::Wicket => String::from("wicket"),
-            _ => String::from("none"),
+            _ => return None,
         };
 
-        container(text(container_text))
+        Some(container(text(container_text)))
     }
 }
 

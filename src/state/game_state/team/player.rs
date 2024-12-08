@@ -69,7 +69,7 @@ impl Display for Player {
     }
 }
 
-#[derive(Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, PartialEq)]
 pub enum PlayerType {
     A,
     B,

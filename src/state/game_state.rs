@@ -8,12 +8,12 @@ use serde::{Deserialize, Serialize};
 pub use team::player::{Player, PlayerType};
 pub use team::{Team, TeamType};
 
-#[derive(Clone, Deserialize, Serialize)]
+#[derive(Clone)]
 pub struct GameState {
     pub team_a: Team,
     pub team_b: Team,
     pub batting_team: TeamType,
-    events: Vec<GameEvent>,
+    pub events: Vec<GameEvent>,
     batter_a: Option<Player>,
     batter_b: Option<Player>,
     on_strike_batter: PlayerType,
@@ -43,6 +43,8 @@ impl GameState {
             GameEvent::SelectBowler(ref player) => {
                 self.bowler = Some(self.bowling_team_mut().take_player(player.clone()))
             }
+            GameEvent::SubmitTeam => self.change_team(),
+            GameEvent::AddPlayer(ref player) => self.add_player(player.clone()),
             _ => (),
         }
 
@@ -106,7 +108,9 @@ impl GameState {
         let mut column = Column::new();
 
         for event in &self.events {
-            column = column.push(event.to_container());
+            if let Some(event_container) = event.to_container() {
+                column = column.push(event_container);
+            }
         }
 
         column
@@ -139,6 +143,16 @@ impl GameState {
             on_strike_batter: PlayerType::A,
             bowler: None,
         }
+    }
+
+    pub fn from_events(events: Vec<GameEvent>) -> Self {
+        let mut game_state = GameState::new();
+
+        for event in events {
+            game_state.update(event);
+        }
+
+        game_state
     }
 
     pub fn batting_team(&self) -> &Team {
@@ -181,9 +195,9 @@ impl GameState {
         self.events.push(event);
     }
 
-    pub fn add_player(&mut self, first_name: &str, last_name: &str, batting_order: u32) {
+    pub fn add_player(&mut self, player: Player) {
         let team = self.batting_team_mut();
-        team.add_player(first_name, last_name, batting_order);
+        team.add_player(player);
     }
 
     pub fn team_length(&self) -> usize {
@@ -195,7 +209,7 @@ impl GameState {
     pub fn change_team(&mut self) {
         match self.batting_team {
             TeamType::A => self.batting_team = TeamType::B,
-            TeamType::B => self.batting_team = TeamType::B,
+            TeamType::B => self.batting_team = TeamType::A,
         };
     }
 

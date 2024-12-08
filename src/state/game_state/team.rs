@@ -4,7 +4,7 @@ use super::Overs;
 use player::Player;
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Debug, Clone)]
 pub struct Team {
     pub players: Vec<Option<Player>>,
     team_name: String,
@@ -24,9 +24,8 @@ impl Team {
         }
     }
 
-    pub fn add_player(&mut self, first_name: &str, last_name: &str, batting_order: u32) {
-        self.players
-            .push(Some(Player::new(first_name, last_name, batting_order)));
+    pub fn add_player(&mut self, player: Player) {
+        self.players.push(Some(player));
     }
 
     pub fn player_from_order(&self, order: u32) -> Option<Player> {
@@ -58,7 +57,7 @@ impl Team {
     }
 }
 
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq)]
 pub enum TeamType {
     A,
     B,

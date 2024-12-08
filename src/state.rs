@@ -9,9 +9,8 @@ use game_state::event::{Event, GameEvent};
 use game_state::GameState;
 use iced::Element;
 use rfd::FileDialog;
-use serde::{Deserialize, Serialize};
 
-#[derive(Clone, Deserialize, Serialize)]
+#[derive(Clone)]
 pub struct State {
     game_state: GameState,
     app_state: AppState,
@@ -42,15 +41,15 @@ impl State {
     fn load_game(&mut self) {
         let file_path = FileDialog::new().pick_file().expect("invalid path");
         let data = fs::read(file_path).expect("file reading error");
-        let deserialized: State =
+        let deserialized: Vec<GameEvent> =
             bincode::deserialize(data.as_slice()).expect("error deserialising");
-        self.app_state = deserialized.app_state;
-        self.game_state = deserialized.game_state;
+        self.app_state.page = Page::Scoring;
+        self.game_state = GameState::from_events(deserialized);
     }
 
     fn save_game(&self) {
         let file_path = FileDialog::new().save_file().expect("invalid path");
-        let serialized = bincode::serialize(self).expect("error serialising");
+        let serialized = bincode::serialize(&self.game_state.events).expect("error serialising");
         fs::write(file_path, serialized.as_slice()).expect("error writing file");
     }
 }

@@ -1,15 +1,14 @@
 pub mod event;
 
 use crate::state::game_state::team::TeamType;
-use crate::state::game_state::{GameState, ReplaceBatter};
+use crate::state::game_state::{GameState, Player, ReplaceBatter};
 use crate::state::Event;
 use crate::state::GameEvent;
 use event::AppEvent;
 use iced::widget::{button, column, radio, row, text, text_input, Column};
 use iced::Element;
-use serde::{Deserialize, Serialize};
 
-#[derive(Clone, Serialize, Deserialize)]
+#[derive(Clone)]
 pub struct AppState {
     pub page: Page,
     first_name_input: String,
@@ -25,19 +24,18 @@ impl AppState {
             AppEvent::FirstNameChanged(first_name) => self.first_name_input = first_name,
             AppEvent::LastNameChanged(last_name) => self.last_name_input = last_name,
             AppEvent::SubmitName => {
-                game_state.add_player(&self.first_name_input, &self.last_name_input, self.order);
+                let player = Player::new(&self.first_name_input, &self.last_name_input, self.order);
+                game_state.update(GameEvent::AddPlayer(player));
                 self.first_name_input.clear();
                 self.last_name_input.clear();
                 self.order += 1;
             }
             AppEvent::SubmitTeam => {
-                match game_state.batting_team {
-                    TeamType::A => game_state.change_team(),
-                    TeamType::B => {
-                        game_state.change_team();
-                        self.page = Page::SelectBatter;
-                    }
+                if game_state.batting_team == TeamType::B {
+                    self.page = Page::SelectBatter;
                 }
+
+                game_state.update(GameEvent::SubmitTeam);
                 self.order = 0;
             }
             AppEvent::BatterSelected(order) | AppEvent::BowlerSelected(order) => {
@@ -205,7 +203,7 @@ impl AppState {
     }
 }
 
-#[derive(Clone, Serialize, Deserialize)]
+#[derive(Clone)]
 pub enum Page {
     Start,
     TeamEntry,
