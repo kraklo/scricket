@@ -1,7 +1,8 @@
 pub mod event;
 pub mod team;
 
-use event::{Event, GameEvent};
+use super::Event;
+use event::GameEvent;
 use iced::widget::{button, column, row, scrollable, text, Column, Row};
 use iced::Element;
 use serde::{Deserialize, Serialize};

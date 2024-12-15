@@ -1,15 +1,7 @@
+use super::Event;
 use super::{Player, TeamType};
-use crate::state::app_state::event::AppEvent;
 use iced::widget::{container, text, Container};
 use serde::{Deserialize, Serialize};
-
-#[derive(Debug, Clone)]
-pub enum Event {
-    AppEvent(AppEvent),
-    GameEvent(GameEvent),
-    LoadGame,
-    SaveGame,
-}
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub enum GameEvent {
