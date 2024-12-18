@@ -1,5 +1,5 @@
 use super::Event;
-use super::{Player, TeamType};
+use super::{HowOut, Player, TeamType};
 use iced::widget::{container, text, Container};
 use serde::{Deserialize, Serialize};
 
@@ -7,7 +7,7 @@ use serde::{Deserialize, Serialize};
 pub enum GameEvent {
     Runs(u32),
     Extra(Extra),
-    Wicket,
+    Wicket(HowOut),
     StartOver,
     EndOver,
     StartInnings(TeamType),
@@ -26,7 +26,7 @@ impl GameEvent {
                 "{runs} run{plural}",
                 plural = if *runs == 1 { "" } else { "s" }
             ),
-            Self::Wicket => String::from("wicket"),
+            Self::Wicket(how_out) => String::from(format!("wicket: {}", how_out.to_string())),
             _ => return None,
         };
 

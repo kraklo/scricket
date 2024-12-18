@@ -8,7 +8,7 @@ use std::fmt::Display;
 pub struct Player {
     first_name: String,
     last_name: String,
-    how_out: HowOut,
+    pub how_out: HowOut,
     pub runs_scored: u32,
     pub balls_faced: u32,
     pub runs_conceded: u32,

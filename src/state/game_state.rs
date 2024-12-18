@@ -1,11 +1,12 @@
 pub mod event;
 pub mod team;
 
-use super::Event;
+use super::{Event, Page};
 use event::GameEvent;
 use iced::widget::{button, column, row, scrollable, text, Column, Row};
 use iced::Element;
 use serde::{Deserialize, Serialize};
+use strum::{Display, EnumIter};
 pub use team::player::{Player, PlayerType};
 pub use team::{Team, TeamType};
 
@@ -26,7 +27,18 @@ impl GameState {
     pub fn update(&mut self, event: GameEvent) {
         match event {
             GameEvent::Runs(runs) => self.add_runs(runs),
-            GameEvent::Wicket => self.team_a.wickets += 1,
+            GameEvent::Wicket(ref how_out) => {
+                self.team_a.wickets += 1;
+                self.bowler
+                    .as_mut()
+                    .expect("There should be a bowler when a wicket occurs")
+                    .wickets_taken += 1;
+                let player = self
+                    .on_strike_batter_mut()
+                    .expect("There should be an on strike batter when a wicket occurs");
+                player.how_out = how_out.clone();
+                self.clear_on_strike_batter();
+            }
             GameEvent::SelectOnStrike(ref player) => {
                 let batter = Some(self.batting_team_mut().take_player(player.clone()));
                 match self.on_strike_batter {
@@ -97,7 +109,7 @@ impl GameState {
             button("3").on_press(Event::GameEvent(GameEvent::Runs(3))),
             button("4").on_press(Event::GameEvent(GameEvent::Runs(4))),
             button("6").on_press(Event::GameEvent(GameEvent::Runs(6))),
-            button("wicket").on_press(Event::GameEvent(GameEvent::Wicket)),
+            button("wicket").on_press(Event::ChangePage(Page::SelectWicket)),
             button("Save Game").on_press(Event::SaveGame),
         ]);
         content = content.push(scrollable(self.event_column()));
@@ -268,6 +280,13 @@ impl GameState {
             PlayerType::B => self.batter_b.as_mut(),
         }
     }
+
+    pub fn clear_on_strike_batter(&mut self) {
+        match self.on_strike_batter {
+            PlayerType::A => self.batter_a = None,
+            PlayerType::B => self.batter_b = None,
+        }
+    }
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
@@ -312,8 +331,8 @@ impl Extras {
     }
 }
 
-#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-enum HowOut {
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize, EnumIter, Display)]
+pub enum HowOut {
     DidNotBat,
     NotOut,
     Bowled,
@@ -326,13 +345,8 @@ enum HowOut {
     HandledBall,
     ObstructedField,
     TimedOut,
-    Retired(Retired),
-}
-
-#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-enum Retired {
-    NotOut,
-    Hurt,
+    RetiredHurt,
+    RetiredNotOut,
 }
 
 pub enum ReplaceBatter {

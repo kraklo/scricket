@@ -1,5 +1,5 @@
 use super::component::ComponentEvent;
-use super::GameEvent;
+use super::{GameEvent, Page};
 
 #[derive(Debug, Clone)]
 pub enum Event {
@@ -7,4 +7,5 @@ pub enum Event {
     GameEvent(GameEvent),
     LoadGame,
     SaveGame,
+    ChangePage(Page),
 }

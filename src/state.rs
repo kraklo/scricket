@@ -16,6 +16,7 @@ use component::batter_select::BatterSelect;
 use component::bowler_select::BowlerSelect;
 use component::start::Start;
 use component::team_entry::TeamEntry;
+use component::wicket_select::WicketSelect;
 
 pub struct State {
     game_state: GameState,
@@ -38,6 +39,7 @@ impl State {
                 self.game_state = game_state;
             }
             Event::GameEvent(game_event) => self.game_state.update(game_event),
+            Event::ChangePage(page) => self.set_page(page),
             Event::LoadGame => self.load_game(),
             Event::SaveGame => self.save_game(),
         }
@@ -46,10 +48,7 @@ impl State {
     pub fn view(&self) -> Element<Event> {
         match self.page {
             Page::Scoring => self.game_state.view(),
-            Page::Start => self.component.view(&self.game_state),
-            Page::TeamEntry => self.component.view(&self.game_state),
-            Page::SelectBatter => self.component.view(&self.game_state),
-            Page::SelectBowler => self.component.view(&self.game_state),
+            _ => self.component.view(&self.game_state),
         }
     }
 }
@@ -76,6 +75,7 @@ impl State {
             Page::SelectBatter => self.component = Box::new(BatterSelect::new()),
             Page::SelectBowler => self.component = Box::new(BowlerSelect::new()),
             Page::TeamEntry => self.component = Box::new(TeamEntry::new()),
+            Page::SelectWicket => self.component = Box::new(WicketSelect::new()),
             _ => (),
         }
 
@@ -93,11 +93,12 @@ impl Default for State {
     }
 }
 
-#[derive(Clone)]
-enum Page {
+#[derive(Debug, Clone)]
+pub enum Page {
     Start,
     TeamEntry,
     Scoring,
     SelectBatter,
     SelectBowler,
+    SelectWicket,
 }
