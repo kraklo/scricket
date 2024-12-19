@@ -27,18 +27,7 @@ impl GameState {
     pub fn update(&mut self, event: GameEvent) {
         match event {
             GameEvent::Runs(runs) => self.add_runs(runs),
-            GameEvent::Wicket(ref how_out) => {
-                self.team_a.wickets += 1;
-                self.bowler
-                    .as_mut()
-                    .expect("There should be a bowler when a wicket occurs")
-                    .wickets_taken += 1;
-                let player = self
-                    .on_strike_batter_mut()
-                    .expect("There should be an on strike batter when a wicket occurs");
-                player.how_out = how_out.clone();
-                self.clear_on_strike_batter();
-            }
+            GameEvent::Wicket(ref how_out) => self.add_wicket(how_out.clone()),
             GameEvent::SelectOnStrike(ref player) => {
                 let batter = Some(self.batting_team_mut().take_player(player.clone()));
                 match self.on_strike_batter {
@@ -69,7 +58,8 @@ impl GameState {
 
         let mut content = column![
             text(format!(
-                "{wickets}/{runs}",
+                "{team_name}: {wickets}/{runs}",
+                team_name = team.team_name,
                 wickets = team.wickets,
                 runs = team.runs
             )),
@@ -256,6 +246,26 @@ impl GameState {
         if runs % 2 == 1 {
             self.change_strike();
         }
+    }
+
+    fn add_wicket(&mut self, how_out: HowOut) {
+        let mut player = self
+            .on_strike_batter_mut()
+            .expect("There should be an on strike batter when a wicket occurs")
+            .to_owned();
+        player.how_out = how_out;
+
+        let team = self.batting_team_mut();
+        team.wickets += 1;
+        team.overs.add_ball();
+        team.put_player(player.to_owned());
+
+        self.bowler
+            .as_mut()
+            .expect("There should be a bowler when a wicket occurs")
+            .wickets_taken += 1;
+
+        self.clear_on_strike_batter();
     }
 
     pub fn batter_to_replace(&self) -> Option<ReplaceBatter> {

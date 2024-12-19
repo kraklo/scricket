@@ -7,7 +7,7 @@ use serde::{Deserialize, Serialize};
 #[derive(Debug, Clone)]
 pub struct Team {
     pub players: Vec<Option<Player>>,
-    team_name: String,
+    pub team_name: String,
     pub runs: u32,
     pub wickets: u32,
     pub overs: Overs,
@@ -54,6 +54,16 @@ impl Team {
         let found_player_index = found_player_index.expect("Player should exist");
         std::mem::replace(&mut self.players[found_player_index], None)
             .expect("Should be replacing a not None player")
+    }
+
+    pub fn put_player(&mut self, player: Player) {
+        let index = player.batting_order as usize;
+
+        if self.players[index] != None {
+            panic!("There should not be a player at {}", index);
+        }
+
+        self.players[index] = Some(player);
     }
 }
 
