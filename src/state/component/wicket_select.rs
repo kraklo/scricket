@@ -1,9 +1,10 @@
-use super::{Component, ComponentEvent};
+use super::{AsEvent, Component, ComponentEvent};
 use crate::state::game_state::event::GameEvent;
 use crate::state::game_state::HowOut;
 use crate::state::{Event, GameState, Page};
 use iced::widget::{button, column, radio, text};
 use iced::Element;
+use macros::AsEvent;
 use strum::IntoEnumIterator;
 
 pub struct WicketSelect {
@@ -48,17 +49,14 @@ impl Component for WicketSelect {
                 how_out.to_string(),
                 i,
                 self.selected_how_out,
-                |selection| {
-                    ComponentEvent::WicketSelectEvent(WicketSelectEvent::HowOutSelected(selection))
-                        .as_event()
-                },
+                |selection| WicketSelectEvent::HowOutSelected(selection).as_event(),
             ));
         }
 
         if let Some(_) = self.selected_how_out {
-            column = column.push(button("Select how out").on_press(
-                ComponentEvent::WicketSelectEvent(WicketSelectEvent::SubmitWicket).as_event(),
-            ));
+            column = column.push(
+                button("Select how out").on_press(WicketSelectEvent::SubmitWicket.as_event()),
+            );
         }
 
         column.into()
@@ -73,7 +71,7 @@ impl WicketSelect {
     }
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, AsEvent)]
 pub enum WicketSelectEvent {
     HowOutSelected(usize),
     SubmitWicket,

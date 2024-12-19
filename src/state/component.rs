@@ -27,8 +27,6 @@ pub enum ComponentEvent {
     WicketSelectEvent(WicketSelectEvent),
 }
 
-impl ComponentEvent {
-    pub fn as_event(self) -> Event {
-        Event::ComponentEvent(self)
-    }
+trait AsEvent {
+    fn as_event(self) -> Event;
 }

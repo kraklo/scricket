@@ -1,10 +1,11 @@
-use super::{Component, ComponentEvent};
+use super::{AsEvent, Component, ComponentEvent};
 use crate::state::game_state::event::GameEvent;
 use crate::state::game_state::team::player::Player;
 use crate::state::game_state::TeamType;
 use crate::state::{Event, GameState, Page};
 use iced::widget::{button, column, row, text_input};
 use iced::Element;
+use macros::AsEvent;
 
 pub struct TeamEntry {
     first_name_input: String,
@@ -51,26 +52,18 @@ impl Component for TeamEntry {
     fn view<'a>(&'a self, game_state: &'a GameState) -> Element<'a, Event> {
         let mut column = column![
             row![
-                text_input("First Name", &self.first_name_input).on_input(|input| {
-                    ComponentEvent::TeamEntryEvent(TeamEntryEvent::FirstNameChanged(input))
-                        .as_event()
-                }),
-                text_input("Last Name", &self.last_name_input).on_input(|input| {
-                    ComponentEvent::TeamEntryEvent(TeamEntryEvent::LastNameChanged(input))
-                        .as_event()
-                }),
-                button("Submit").on_press(
-                    ComponentEvent::TeamEntryEvent(TeamEntryEvent::SubmitName).as_event()
-                ),
+                text_input("First Name", &self.first_name_input)
+                    .on_input(|input| { TeamEntryEvent::FirstNameChanged(input).as_event() }),
+                text_input("Last Name", &self.last_name_input)
+                    .on_input(|input| { TeamEntryEvent::LastNameChanged(input).as_event() }),
+                button("Submit").on_press(TeamEntryEvent::SubmitName.as_event()),
             ],
             game_state.player_column(),
         ];
 
         if game_state.team_length() >= 11 {
             column =
-                column.push(button("Confirm Team").on_press(
-                    ComponentEvent::TeamEntryEvent(TeamEntryEvent::SubmitTeam).as_event(),
-                ));
+                column.push(button("Confirm Team").on_press(TeamEntryEvent::SubmitTeam.as_event()));
         }
 
         column.into()
@@ -87,7 +80,7 @@ impl TeamEntry {
     }
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, AsEvent)]
 pub enum TeamEntryEvent {
     FirstNameChanged(String),
     LastNameChanged(String),

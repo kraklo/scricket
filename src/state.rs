@@ -1,5 +1,5 @@
-mod component;
-mod event;
+pub mod component;
+pub mod event;
 pub mod game_state;
 
 use std::fs;

@@ -1,7 +1,8 @@
-use super::{Component, ComponentEvent};
+use super::{AsEvent, Component, ComponentEvent};
 use crate::state::{Event, GameState, Page};
 use iced::widget::{button, row};
 use iced::Element;
+use macros::AsEvent;
 
 pub struct Start {}
 
@@ -38,13 +39,13 @@ impl Start {
     fn start(&self) -> Element<Event> {
         row![
             button("Load Game").on_press(Event::LoadGame),
-            button("New Game").on_press(ComponentEvent::StartEvent(StartEvent::NewGame).as_event()),
+            button("New Game").on_press(StartEvent::NewGame.as_event()),
         ]
         .into()
     }
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, AsEvent)]
 pub enum StartEvent {
     NewGame,
 }

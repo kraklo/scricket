@@ -1,9 +1,10 @@
-use super::{Component, ComponentEvent};
+use super::{AsEvent, Component, ComponentEvent};
 use crate::state::game_state::event::GameEvent;
 use crate::state::game_state::ReplaceBatter;
 use crate::state::{Event, GameState, Page};
 use iced::widget::{button, column, radio, text, Column};
 use iced::Element;
+use macros::AsEvent;
 
 pub struct BatterSelect {
     selected_player: Option<u32>,
@@ -88,20 +89,14 @@ impl BatterSelect {
                     player.to_string(),
                     player.batting_order,
                     self.selected_player,
-                    |selection| {
-                        ComponentEvent::BatterSelectEvent(BatterSelectEvent::BatterSelected(
-                            selection,
-                        ))
-                        .as_event()
-                    },
+                    |selection| BatterSelectEvent::BatterSelected(selection).as_event(),
                 ));
             };
         }
 
         if let Some(_) = self.selected_player {
-            column = column.push(button("Select player").on_press(
-                ComponentEvent::BatterSelectEvent(BatterSelectEvent::SubmitBatter).as_event(),
-            ));
+            column = column
+                .push(button("Select player").on_press(BatterSelectEvent::SubmitBatter.as_event()));
         }
 
         column.into()
@@ -120,7 +115,7 @@ impl BatterSelect {
     }
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, AsEvent)]
 pub enum BatterSelectEvent {
     BatterSelected(u32),
     SubmitBatter,

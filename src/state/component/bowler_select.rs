@@ -1,8 +1,9 @@
-use super::{Component, ComponentEvent};
+use super::{AsEvent, Component, ComponentEvent};
 use crate::state::game_state::event::GameEvent;
 use crate::state::{Event, GameState, Page};
 use iced::widget::{button, radio, text, Column};
 use iced::Element;
+use macros::AsEvent;
 
 pub struct BowlerSelect {
     selected_player: Option<u32>,
@@ -63,27 +64,21 @@ impl BowlerSelect {
                     player.to_string(),
                     player.batting_order,
                     self.selected_player,
-                    |selection| {
-                        ComponentEvent::BowlerSelectEvent(BowlerSelectEvent::BowlerSelected(
-                            selection,
-                        ))
-                        .as_event()
-                    },
+                    |selection| BowlerSelectEvent::BowlerSelected(selection).as_event(),
                 ));
             };
         }
 
         if let Some(_) = self.selected_player {
-            column = column.push(button("Select player").on_press(
-                ComponentEvent::BowlerSelectEvent(BowlerSelectEvent::SubmitBowler).as_event(),
-            ));
+            column = column
+                .push(button("Select player").on_press(BowlerSelectEvent::SubmitBowler.as_event()));
         }
 
         column.into()
     }
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, AsEvent)]
 pub enum BowlerSelectEvent {
     BowlerSelected(u32),
     SubmitBowler,
