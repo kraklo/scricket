@@ -45,6 +45,10 @@ impl Component for WicketSelect {
         let mut column = column![text("Select how out:")];
 
         for (i, how_out) in HowOut::iter().enumerate() {
+            match how_out {
+                HowOut::DidNotBat | HowOut::NotOut => continue,
+                _ => (),
+            }
             column = column.push(radio(
                 how_out.to_string(),
                 i,

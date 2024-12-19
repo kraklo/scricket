@@ -1,6 +1,6 @@
 use super::{AsEvent, Component, ComponentEvent};
 use crate::state::game_state::event::GameEvent;
-use crate::state::game_state::ReplaceBatter;
+use crate::state::game_state::{HowOut, ReplaceBatter};
 use crate::state::{Event, GameState, Page};
 use iced::widget::{button, column, radio, text, Column};
 use iced::Element;
@@ -85,6 +85,13 @@ impl BatterSelect {
 
         for player in &team.players {
             if let Some(player) = player {
+                if player.how_out != HowOut::DidNotBat
+                    && player.how_out != HowOut::RetiredHurt
+                    && player.how_out != HowOut::RetiredNotOut
+                {
+                    continue;
+                }
+
                 column = column.push(radio(
                     player.to_string(),
                     player.batting_order,
