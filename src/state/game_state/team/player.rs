@@ -15,12 +15,13 @@ pub struct Player {
     pub wickets_taken: u32,
     pub overs_bowled: Overs,
     extras: Extras,
-    pub batting_order: u32,
+    pub order: u32,
+    pub batting_order: Option<u32>,
     pub bowling_order: Option<u32>,
 }
 
 impl Player {
-    pub fn new(first_name: &str, last_name: &str, batting_order: u32) -> Self {
+    pub fn new(first_name: &str, last_name: &str, order: u32) -> Self {
         Player {
             first_name: String::from(first_name),
             last_name: String::from(last_name),
@@ -31,7 +32,8 @@ impl Player {
             wickets_taken: 0,
             overs_bowled: Overs::new(),
             extras: Extras::new(),
-            batting_order,
+            order,
+            batting_order: None,
             bowling_order: None,
         }
     }

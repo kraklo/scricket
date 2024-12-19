@@ -28,22 +28,26 @@ impl Component for BatterSelect {
             BatterSelectEvent::SubmitBatter => {
                 if let Some(batter) = game_state.batter_to_replace() {
                     match batter {
-                        ReplaceBatter::OnStrike => game_state.update(GameEvent::SelectOnStrike(
-                            game_state
-                                .batting_team()
-                                .player_from_order(
-                                    self.selected_player.expect("Batter should be selected"),
-                                )
-                                .expect("Selected player should exist"),
-                        )),
-                        ReplaceBatter::OffStrike => game_state.update(GameEvent::SelectOffStrike(
-                            game_state
-                                .batting_team()
-                                .player_from_order(
-                                    self.selected_player.expect("Batter should be selected"),
-                                )
-                                .expect("Selected player should exist"),
-                        )),
+                        ReplaceBatter::OnStrike => {
+                            game_state.update(GameEvent::SelectOnStrike(
+                                game_state
+                                    .batting_team()
+                                    .player_from_order(
+                                        self.selected_player.expect("Batter should be selected"),
+                                    )
+                                    .expect("Selected player should exist"),
+                            ));
+                        }
+                        ReplaceBatter::OffStrike => {
+                            game_state.update(GameEvent::SelectOffStrike(
+                                game_state
+                                    .batting_team()
+                                    .player_from_order(
+                                        self.selected_player.expect("Batter should be selected"),
+                                    )
+                                    .expect("Selected player should exist"),
+                            ));
+                        }
                     }
 
                     self.selected_player = None;
@@ -94,7 +98,7 @@ impl BatterSelect {
 
                 column = column.push(radio(
                     player.to_string(),
-                    player.batting_order,
+                    player.order,
                     self.selected_player,
                     |selection| BatterSelectEvent::BatterSelected(selection).as_event(),
                 ));

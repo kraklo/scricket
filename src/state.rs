@@ -27,6 +27,8 @@ pub struct State {
 impl State {
     // ui
     pub fn update(&mut self, event: Event) {
+        let mut page = None;
+
         match event {
             Event::ComponentEvent(component_event) => {
                 let (game_state, page) = self
@@ -38,10 +40,14 @@ impl State {
                 }
                 self.game_state = game_state;
             }
-            Event::GameEvent(game_event) => self.game_state.update(game_event),
+            Event::GameEvent(game_event) => page = self.game_state.update(game_event),
             Event::ChangePage(page) => self.set_page(page),
             Event::LoadGame => self.load_game(),
             Event::SaveGame => self.save_game(),
+        }
+
+        if let Some(page) = page {
+            self.set_page(page);
         }
     }
 

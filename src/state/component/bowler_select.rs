@@ -17,7 +17,7 @@ impl Component for BowlerSelect {
     ) -> (GameState, Option<Page>) {
         let event = match event {
             ComponentEvent::BowlerSelectEvent(bowler_select_event) => bowler_select_event,
-            _ => panic!("Batter Select component has been called with an event that is not a batter select event!")
+            _ => panic!("Bowler Select component has been called with an event that is not a bowler select event!")
         };
 
         let mut page = None;
@@ -28,7 +28,7 @@ impl Component for BowlerSelect {
                 game_state.update(GameEvent::SelectBowler(
                     game_state
                         .bowling_team()
-                        .player_from_order(self.selected_player.expect("Batter should be selected"))
+                        .player_from_order(self.selected_player.expect("Bowler should be selected"))
                         .expect("Selected player should exist"),
                 ));
                 page = Some(Page::Scoring);
@@ -62,7 +62,7 @@ impl BowlerSelect {
             if let Some(player) = player {
                 column = column.push(radio(
                     player.to_string(),
-                    player.batting_order,
+                    player.order,
                     self.selected_player,
                     |selection| BowlerSelectEvent::BowlerSelected(selection).as_event(),
                 ));

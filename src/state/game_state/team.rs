@@ -31,7 +31,7 @@ impl Team {
     pub fn player_from_order(&self, order: u32) -> Option<Player> {
         for player in &self.players {
             if let Some(player) = player {
-                if player.batting_order == order {
+                if player.order == order {
                     return Some(player.clone());
                 }
             }
@@ -57,7 +57,7 @@ impl Team {
     }
 
     pub fn put_player(&mut self, player: Player) {
-        let index = player.batting_order as usize;
+        let index = player.order as usize;
 
         if self.players[index] != None {
             panic!("There should not be a player at {}", index);

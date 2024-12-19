@@ -24,33 +24,75 @@ pub struct GameState {
 
 impl GameState {
     // ui
-    pub fn update(&mut self, event: GameEvent) {
+    pub fn update(&mut self, event: GameEvent) -> Option<Page> {
+        self.add_event(event.clone());
+
+        let mut page = None;
+
         match event {
-            GameEvent::Runs(runs) => self.add_runs(runs),
-            GameEvent::Wicket(ref how_out) => self.add_wicket(how_out.clone()),
-            GameEvent::SelectOnStrike(ref player) => {
-                let batter = Some(self.batting_team_mut().take_player(player.clone()));
-                match self.on_strike_batter {
-                    PlayerType::A => self.batter_a = batter,
-                    PlayerType::B => self.batter_b = batter,
+            GameEvent::Runs(runs) => {
+                self.add_runs(runs);
+
+                if self.is_end_over() {
+                    self.end_over();
+                    page = Some(Page::SelectBowler);
                 }
             }
-            GameEvent::SelectOffStrike(ref player) => {
-                let batter = Some(self.batting_team_mut().take_player(player.clone()));
-                match self.on_strike_batter {
-                    PlayerType::A => self.batter_b = batter,
-                    PlayerType::B => self.batter_a = batter,
+            GameEvent::Wicket(how_out) => {
+                self.add_wicket(how_out);
+
+                if self.is_end_over() {
+                    self.end_over();
+                    page = Some(Page::SelectBowler);
                 }
             }
-            GameEvent::SelectBowler(ref player) => {
-                self.bowler = Some(self.bowling_team_mut().take_player(player.clone()))
+            GameEvent::SelectOnStrike(player) => {
+                let mut batter = self.batting_team_mut().take_player(player);
+                let team = self.batting_team();
+
+                if team.wickets == 0 {
+                    batter.batting_order = Some(0);
+                } else {
+                    batter.batting_order = Some(team.wickets + 1);
+                }
+
+                match self.on_strike_batter {
+                    PlayerType::A => self.batter_a = Some(batter),
+                    PlayerType::B => self.batter_b = Some(batter),
+                }
+            }
+            GameEvent::SelectOffStrike(player) => {
+                let mut batter = self.batting_team_mut().take_player(player);
+                let team = self.batting_team();
+
+                if team.wickets == 0 {
+                    batter.batting_order = Some(0);
+                } else {
+                    batter.batting_order = Some(team.wickets + 1);
+                }
+
+                match self.on_strike_batter {
+                    PlayerType::A => self.batter_b = Some(batter),
+                    PlayerType::B => self.batter_a = Some(batter),
+                }
+            }
+            GameEvent::SelectBowler(player) => {
+                let bowling_order = 0; // TODO: find a way to calculate this
+
+                if let Some(bowler) = self.bowler.clone() {
+                    self.bowling_team_mut().put_player(bowler);
+                }
+
+                let mut bowler = self.bowling_team_mut().take_player(player);
+                bowler.bowling_order = Some(bowling_order);
+                self.bowler = Some(bowler);
             }
             GameEvent::SubmitTeam => self.change_team(),
-            GameEvent::AddPlayer(ref player) => self.add_player(player.clone()),
+            GameEvent::AddPlayer(player) => self.add_player(player),
             _ => (),
         }
 
-        self.add_event(event);
+        page
     }
 
     pub fn view(&self) -> Element<Event> {
@@ -265,7 +307,7 @@ impl GameState {
             .as_mut()
             .expect("There should be a bowler when a wicket occurs");
         bowler.wickets_taken += 1;
-        bowler.overs_bowled.add_ball();
+        bowler.overs_bowled.add_ball_bowler();
 
         self.clear_on_strike_batter();
     }
@@ -299,6 +341,21 @@ impl GameState {
             PlayerType::B => self.batter_b = None,
         }
     }
+
+    fn is_end_over(&self) -> bool {
+        self.batting_team().overs.balls >= 6
+    }
+
+    fn end_over(&mut self) {
+        if let Some(bowler) = self.bowler.clone() {
+            self.bowling_team_mut().put_player(bowler);
+            self.bowler = None;
+        }
+
+        self.batting_team_mut().overs.end_over();
+        self.change_strike();
+        self.add_event(GameEvent::EndOver);
+    }
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
@@ -314,11 +371,20 @@ impl Overs {
 
     fn add_ball(&mut self) {
         self.balls += 1;
+    }
+
+    fn add_ball_bowler(&mut self) {
+        self.balls += 1;
 
         if self.balls == 6 {
             self.overs += 1;
             self.balls = 0;
         }
+    }
+
+    fn end_over(&mut self) {
+        self.balls = 0;
+        self.overs += 1;
     }
 }
 
