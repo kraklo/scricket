@@ -1,5 +1,6 @@
 pub mod batter_select;
 pub mod bowler_select;
+pub mod extra_select;
 pub mod start;
 pub mod team_entry;
 pub mod wicket_select;
@@ -7,6 +8,7 @@ pub mod wicket_select;
 use crate::state::{Event, GameState, Page};
 use batter_select::BatterSelectEvent;
 use bowler_select::BowlerSelectEvent;
+use extra_select::ExtraSelectEvent;
 use iced::Element;
 use start::StartEvent;
 use team_entry::TeamEntryEvent;
@@ -25,8 +27,9 @@ pub enum ComponentEvent {
     StartEvent(StartEvent),
     TeamEntryEvent(TeamEntryEvent),
     WicketSelectEvent(WicketSelectEvent),
+    ExtraSelectEvent(ExtraSelectEvent),
 }
 
-trait AsEvent {
+pub trait AsEvent {
     fn as_event(self) -> Event;
 }

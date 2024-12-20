@@ -14,6 +14,7 @@ use rfd::FileDialog;
 
 use component::batter_select::BatterSelect;
 use component::bowler_select::BowlerSelect;
+use component::extra_select::ExtraSelect;
 use component::start::Start;
 use component::team_entry::TeamEntry;
 use component::wicket_select::WicketSelect;
@@ -82,6 +83,7 @@ impl State {
             Page::SelectBowler => self.component = Box::new(BowlerSelect::new()),
             Page::TeamEntry => self.component = Box::new(TeamEntry::new()),
             Page::SelectWicket => self.component = Box::new(WicketSelect::new()),
+            Page::SelectExtra => self.component = Box::new(ExtraSelect::new()),
             _ => (),
         }
 
@@ -107,4 +109,5 @@ pub enum Page {
     SelectBatter,
     SelectBowler,
     SelectWicket,
+    SelectExtra,
 }

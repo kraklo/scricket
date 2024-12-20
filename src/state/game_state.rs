@@ -142,6 +142,7 @@ impl GameState {
             button("4").on_press(Event::GameEvent(GameEvent::Runs(4))),
             button("6").on_press(Event::GameEvent(GameEvent::Runs(6))),
             button("wicket").on_press(Event::ChangePage(Page::SelectWicket)),
+            button("extra").on_press(Event::ChangePage(Page::SelectExtra)),
             button("Save Game").on_press(Event::SaveGame),
         ]);
         content = content.push(scrollable(self.event_column()));

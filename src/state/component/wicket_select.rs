@@ -19,7 +19,9 @@ impl Component for WicketSelect {
     ) -> (GameState, Option<Page>) {
         let event = match event {
             ComponentEvent::WicketSelectEvent(wicket_select_event) => wicket_select_event,
-            _ => panic!("Batter Select component has been called with an event that is not a batter select event!")
+            _ => {
+                panic!("Wicket component has been called with an event that is not a wicket event!")
+            }
         };
 
         let mut page = None;
