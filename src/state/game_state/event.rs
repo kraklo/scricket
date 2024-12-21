@@ -38,8 +38,8 @@ impl GameEvent {
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct Extra {
-    runs: u32,
-    extra_type: ExtraType,
+    pub runs: u32,
+    pub extra_type: ExtraType,
 }
 
 impl Extra {

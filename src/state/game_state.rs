@@ -2,6 +2,7 @@ pub mod event;
 pub mod team;
 
 use super::{Event, Page};
+use event::ExtraType;
 use event::GameEvent;
 use iced::widget::{button, column, row, scrollable, text, Column, Row};
 use iced::Element;
@@ -89,6 +90,44 @@ impl GameState {
             }
             GameEvent::SubmitTeam => self.change_team(),
             GameEvent::AddPlayer(player) => self.add_player(player),
+            GameEvent::Extra(extra) => {
+                let mut batting_team = self.batting_team_mut().to_owned();
+                let mut batter = self.on_strike_batter_mut().unwrap().to_owned();
+                let mut bowler = self.bowler.as_ref().unwrap().to_owned();
+
+                match extra.extra_type {
+                    ExtraType::Wide => {
+                        let runs = extra.runs + 1;
+                        batting_team.runs += runs;
+                        bowler.runs_conceded += runs;
+                    }
+                    ExtraType::NoBall => {
+                        let runs = extra.runs + 1;
+                        batting_team.runs += runs;
+                        bowler.runs_conceded += runs;
+                        batter.balls_faced += 1;
+                    }
+                    ExtraType::Bye => {
+                        batting_team.runs += extra.runs;
+                        batter.balls_faced += 1;
+                    }
+                    ExtraType::LegBye => {
+                        batting_team.runs += extra.runs;
+                        batter.balls_faced += 1;
+                    }
+                    ExtraType::PenaltyRuns => {
+                        batting_team.runs += extra.runs;
+                    }
+                }
+
+                self.set_batting_team(batting_team);
+                self.set_on_strike_batter(Some(batter));
+                self.bowler = Some(bowler);
+
+                if extra.runs % 2 == 1 {
+                    self.change_strike();
+                }
+            }
             _ => (),
         }
 
@@ -219,6 +258,13 @@ impl GameState {
         team
     }
 
+    fn set_batting_team(&mut self, team: Team) {
+        match self.batting_team {
+            TeamType::A => self.team_a = team,
+            TeamType::B => self.team_b = team,
+        }
+    }
+
     pub fn bowling_team(&self) -> &Team {
         let team = match self.batting_team {
             TeamType::A => &self.team_b,
@@ -279,7 +325,7 @@ impl GameState {
             .as_mut()
             .expect("A player should be bowling when add_runs is callled");
 
-        bowler.overs_bowled.add_ball();
+        bowler.overs_bowled.add_ball_bowler();
         bowler.runs_conceded += runs;
 
         let team = self.batting_team_mut();
@@ -310,7 +356,7 @@ impl GameState {
         bowler.wickets_taken += 1;
         bowler.overs_bowled.add_ball_bowler();
 
-        self.clear_on_strike_batter();
+        self.set_on_strike_batter(None);
     }
 
     pub fn batter_to_replace(&self) -> Option<ReplaceBatter> {
@@ -336,10 +382,10 @@ impl GameState {
         }
     }
 
-    pub fn clear_on_strike_batter(&mut self) {
+    pub fn set_on_strike_batter(&mut self, batter: Option<Player>) {
         match self.on_strike_batter {
-            PlayerType::A => self.batter_a = None,
-            PlayerType::B => self.batter_b = None,
+            PlayerType::A => self.batter_a = batter,
+            PlayerType::B => self.batter_b = batter,
         }
     }
 
