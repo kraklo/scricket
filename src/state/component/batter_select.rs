@@ -1,6 +1,7 @@
 use super::{AsEvent, Component, ComponentEvent};
 use crate::state::game_state::event::GameEvent;
-use crate::state::game_state::{HowOut, ReplaceBatter};
+use crate::state::game_state::wickets::HowOut;
+use crate::state::game_state::ReplaceBatter;
 use crate::state::{Event, GameState, Page};
 use iced::widget::{button, column, radio, text, Column};
 use iced::Element;

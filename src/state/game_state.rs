@@ -1,15 +1,17 @@
 pub mod event;
+pub mod extras;
+pub mod overs;
 pub mod team;
+pub mod wickets;
 
-use super::{Event, Page};
+use crate::state::{Event, Page};
 use event::ExtraType;
 use event::GameEvent;
 use iced::widget::{button, column, row, scrollable, text, Column, Row};
 use iced::Element;
-use serde::{Deserialize, Serialize};
-use strum::{Display, EnumIter};
 pub use team::player::{Player, PlayerType};
 pub use team::{Team, TeamType};
+use wickets::HowOut;
 
 #[derive(Clone)]
 pub struct GameState {
@@ -403,86 +405,6 @@ impl GameState {
         self.change_strike();
         self.add_event(GameEvent::EndOver);
     }
-}
-
-#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-pub struct Overs {
-    overs: u32,
-    balls: u32,
-}
-
-impl Overs {
-    fn new() -> Self {
-        Overs { overs: 0, balls: 0 }
-    }
-
-    fn add_ball(&mut self) {
-        self.balls += 1;
-    }
-
-    fn add_ball_bowler(&mut self) {
-        self.balls += 1;
-
-        if self.balls == 6 {
-            self.overs += 1;
-            self.balls = 0;
-        }
-    }
-
-    fn end_over(&mut self) {
-        self.balls = 0;
-        self.overs += 1;
-    }
-}
-
-#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-struct Extras {
-    wides: u32,
-    no_balls: u32,
-    byes: u32,
-    leg_byes: u32,
-    penalty_runs: u32,
-}
-
-impl Extras {
-    fn new() -> Self {
-        Extras {
-            wides: 0,
-            no_balls: 0,
-            byes: 0,
-            leg_byes: 0,
-            penalty_runs: 0,
-        }
-    }
-}
-
-#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize, EnumIter, Display)]
-pub enum HowOut {
-    #[strum(to_string = "Did not bat")]
-    DidNotBat,
-    #[strum(to_string = "Not out")]
-    NotOut,
-    Bowled,
-    #[strum(to_string = "LBW")]
-    Lbw,
-    Caught,
-    #[strum(to_string = "Run out")]
-    RunOut,
-    Stumped,
-    #[strum(to_string = "Hit wicket")]
-    HitWicket,
-    #[strum(to_string = "Hit ball twice")]
-    HitBallTwice,
-    #[strum(to_string = "Handled the ball")]
-    HandledBall,
-    #[strum(to_string = "Obstructed the field")]
-    ObstructedField,
-    #[strum(to_string = "Timed out")]
-    TimedOut,
-    #[strum(to_string = "Retired hurt")]
-    RetiredHurt,
-    #[strum(to_string = "Retired not out")]
-    RetiredNotOut,
 }
 
 pub enum ReplaceBatter {

@@ -1,5 +1,7 @@
-use super::super::Event;
-use super::super::{Extras, HowOut, Overs};
+use crate::state::game_state::extras::Extras;
+use crate::state::game_state::overs::Overs;
+use crate::state::game_state::wickets::HowOut;
+use crate::state::Event;
 use iced::widget::{container, text, Container};
 use serde::{Deserialize, Serialize};
 use std::fmt::Display;

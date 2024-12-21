@@ -1,6 +1,6 @@
 pub mod player;
 
-use super::Overs;
+use crate::state::game_state::overs::Overs;
 use player::Player;
 use serde::{Deserialize, Serialize};
 
