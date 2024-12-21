@@ -1,3 +1,4 @@
+use super::runs_button::RunsButton;
 use super::{AsEvent, Component, ComponentEvent};
 use crate::state::game_state::event::GameEvent;
 use crate::state::game_state::event::{Extra, ExtraType};
@@ -9,6 +10,8 @@ use strum::IntoEnumIterator;
 
 pub struct ExtraSelect {
     selected_extra: Option<usize>,
+    runs_button: Option<RunsButton>,
+    runs_button_runs: u32,
 }
 
 impl Component for ExtraSelect {
@@ -19,20 +22,36 @@ impl Component for ExtraSelect {
     ) -> (GameState, Option<Page>) {
         let event = match event {
             ComponentEvent::ExtraSelectEvent(extra_select_event) => extra_select_event,
+            ComponentEvent::RunsButtonEvent(runs_button_event) => {
+                let runs_button = self.runs_button.as_mut().expect("Runs button event in extra select with no runs button!");
+                runs_button.update(runs_button_event);
+                self.runs_button_runs = runs_button.runs;
+                return (game_state, None);
+            }
             _ => panic!("Extra select component has been called with an event that is not a extra select event!")
         };
 
         let mut page = None;
 
         match event {
-            ExtraSelectEvent::ExtraSelected(extra_index) => self.selected_extra = Some(extra_index),
+            ExtraSelectEvent::ExtraSelected(extra_index) => {
+                self.selected_extra = Some(extra_index);
+                let extra_type = &ExtraType::iter().collect::<Vec<ExtraType>>()[self
+                    .selected_extra
+                    .expect("Extra should be selected when an extra is submitted")];
+                let minimum_runs = match extra_type {
+                    ExtraType::Wide | ExtraType::NoBall => 0,
+                    _ => 1,
+                };
+                self.runs_button = Some(RunsButton::new(minimum_runs));
+            }
             ExtraSelectEvent::SubmitExtra => {
                 let extra_type = ExtraType::iter().collect::<Vec<ExtraType>>()[self
                     .selected_extra
                     .expect("Extra should be selected when an extra is submitted")]
                 .clone();
 
-                let extra = Extra::new(extra_type);
+                let extra = Extra::new(self.runs_button_runs, extra_type);
 
                 game_state.update(GameEvent::Extra(extra));
                 page = Some(Page::Scoring);
@@ -55,6 +74,12 @@ impl Component for ExtraSelect {
         }
 
         if let Some(_) = self.selected_extra {
+            column = column.push(
+                self.runs_button
+                    .as_ref()
+                    .expect("Runs button should exist if extra is selected")
+                    .view(),
+            );
             column = column
                 .push(button("Select extra").on_press(ExtraSelectEvent::SubmitExtra.as_event()));
         }
@@ -67,6 +92,8 @@ impl ExtraSelect {
     pub fn new() -> Self {
         ExtraSelect {
             selected_extra: None,
+            runs_button: None,
+            runs_button_runs: 0,
         }
     }
 }

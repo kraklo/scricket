@@ -43,11 +43,8 @@ pub struct Extra {
 }
 
 impl Extra {
-    pub fn new(extra_type: ExtraType) -> Self {
-        Extra {
-            runs: 0,
-            extra_type,
-        }
+    pub fn new(runs: u32, extra_type: ExtraType) -> Self {
+        Self { runs, extra_type }
     }
 }
 

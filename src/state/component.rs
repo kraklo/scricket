@@ -1,6 +1,7 @@
 pub mod batter_select;
 pub mod bowler_select;
 pub mod extra_select;
+pub mod runs_button;
 pub mod start;
 pub mod team_entry;
 pub mod wicket_select;
@@ -10,6 +11,7 @@ use batter_select::BatterSelectEvent;
 use bowler_select::BowlerSelectEvent;
 use extra_select::ExtraSelectEvent;
 use iced::Element;
+use runs_button::RunsButtonEvent;
 use start::StartEvent;
 use team_entry::TeamEntryEvent;
 use wicket_select::WicketSelectEvent;
@@ -28,6 +30,7 @@ pub enum ComponentEvent {
     TeamEntryEvent(TeamEntryEvent),
     WicketSelectEvent(WicketSelectEvent),
     ExtraSelectEvent(ExtraSelectEvent),
+    RunsButtonEvent(RunsButtonEvent),
 }
 
 pub trait AsEvent {
