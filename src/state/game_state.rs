@@ -5,10 +5,12 @@ pub mod team;
 pub mod wickets;
 
 use crate::state::{Event, Page};
-use event::GameEvent;
+use event::{GameEvent, GameEventHistory};
 use extras::ExtraType;
 use iced::widget::{button, column, row, scrollable, text, Column, Row};
 use iced::Element;
+use std::cell::RefCell;
+use std::rc::Rc;
 pub use team::player::{Player, PlayerType};
 pub use team::{Team, TeamType};
 use wickets::HowOut;
@@ -19,10 +21,11 @@ pub struct GameState {
     pub team_b: Team,
     pub batting_team: TeamType,
     pub events: Vec<GameEvent>,
-    batter_a: Option<Player>,
-    batter_b: Option<Player>,
+    event_history: Vec<GameEventHistory>,
+    batter_a: Option<Rc<RefCell<Player>>>,
+    batter_b: Option<Rc<RefCell<Player>>>,
     on_strike_batter: PlayerType,
-    pub bowler: Option<Player>,
+    pub bowler: Option<Rc<RefCell<Player>>>,
 }
 
 impl GameState {
@@ -50,55 +53,56 @@ impl GameState {
                 }
             }
             GameEvent::SelectOnStrike(player) => {
-                let mut batter = self.batting_team_mut().take_player(player);
                 let team = self.batting_team();
+                let batter_ref = Rc::clone(&team.players[player]);
+                let mut batter = batter_ref.borrow_mut();
 
                 if team.wickets == 0 {
                     batter.batting_order = Some(0);
                 } else {
-                    batter.batting_order = Some(team.wickets + 1);
+                    batter.batting_order = Some((team.wickets + 1) as usize);
                 }
 
                 match self.on_strike_batter {
-                    PlayerType::A => self.batter_a = Some(batter),
-                    PlayerType::B => self.batter_b = Some(batter),
+                    PlayerType::A => self.batter_a = Some(Rc::clone(&batter_ref)),
+                    PlayerType::B => self.batter_b = Some(Rc::clone(&batter_ref)),
                 }
             }
             GameEvent::SelectOffStrike(player) => {
-                let mut batter = self.batting_team_mut().take_player(player);
                 let team = self.batting_team();
+                let batter_ref = Rc::clone(&team.players[player]);
+                let mut batter = batter_ref.borrow_mut();
 
                 if team.wickets == 0 {
                     batter.batting_order = Some(0);
                 } else {
-                    batter.batting_order = Some(team.wickets + 1);
+                    batter.batting_order = Some((team.wickets + 1) as usize);
                 }
 
                 match self.on_strike_batter {
-                    PlayerType::A => self.batter_b = Some(batter),
-                    PlayerType::B => self.batter_a = Some(batter),
+                    PlayerType::A => self.batter_b = Some(Rc::clone(&batter_ref)),
+                    PlayerType::B => self.batter_a = Some(Rc::clone(&batter_ref)),
                 }
             }
             GameEvent::SelectBowler(player) => {
                 let bowling_order = 0; // TODO: find a way to calculate this
 
-                if let Some(bowler) = self.bowler.clone() {
-                    self.bowling_team_mut().put_player(bowler);
-                }
-
-                let mut bowler = self.bowling_team_mut().take_player(player);
+                let bowler_ref = Rc::clone(&self.bowling_team().players[player]);
+                let mut bowler = bowler_ref.borrow_mut();
                 bowler.bowling_order = Some(bowling_order);
-                self.bowler = Some(bowler);
+
+                self.bowler = Some(Rc::clone(&bowler_ref));
             }
             GameEvent::SubmitTeam => self.change_team(),
             GameEvent::AddPlayer(player) => self.add_player(player),
             GameEvent::Extra(extra) => {
-                let mut batting_team = self.batting_team_mut().to_owned();
-                let mut batter = self.on_strike_batter_mut().unwrap().to_owned();
-                let mut bowler = self.bowler.as_ref().unwrap().to_owned();
+                let batter_ref = Rc::clone(&self.on_strike_batter().unwrap());
+                let mut batter = batter_ref.borrow_mut();
+
+                let bowler_ref = Rc::clone(&self.bowler.as_ref().unwrap());
+                let mut bowler = bowler_ref.borrow_mut();
 
                 bowler.add_extra(&extra);
-                batting_team.add_extra(&extra);
 
                 match extra.extra_type {
                     ExtraType::NoBall => {
@@ -107,14 +111,19 @@ impl GameState {
                     }
                     ExtraType::Bye | ExtraType::LegBye => {
                         batter.balls_faced += 1;
-                        batting_team.overs.add_ball();
                     }
                     _ => (),
                 }
 
-                self.set_batting_team(batting_team);
-                self.set_on_strike_batter(Some(batter));
-                self.bowler = Some(bowler);
+                let batting_team = self.batting_team_mut();
+                batting_team.add_extra(&extra);
+
+                match extra.extra_type {
+                    ExtraType::Bye | ExtraType::LegBye => {
+                        batting_team.overs.add_ball();
+                    }
+                    _ => (),
+                }
 
                 if extra.runs % 2 == 1 {
                     self.change_strike();
@@ -144,27 +153,32 @@ impl GameState {
         ];
 
         if let Some(player) = &self.batter_a {
+            let player = Rc::clone(player);
             let mut batting_container = Row::<Event>::new();
             if self.on_strike_batter == PlayerType::A {
                 batting_container = batting_container.push(text("*"));
             }
-            batting_container = batting_container.push(player.to_batting_container());
+            batting_container =
+                batting_container.push(player.borrow().clone().to_batting_container());
             content = content.push(batting_container);
         }
 
         if let Some(player) = &self.batter_b {
+            let player = Rc::clone(player);
             let mut batting_container = Row::<Event>::new();
             if self.on_strike_batter == PlayerType::B {
                 batting_container = batting_container.push(text("*"));
             }
-            batting_container = batting_container.push(player.to_batting_container());
+            batting_container =
+                batting_container.push(player.borrow().clone().to_batting_container());
             content = content.push(batting_container);
         }
 
         content = content.push(team.extras.to_container());
 
         if let Some(player) = &self.bowler {
-            content = content.push(player.to_bowling_container());
+            let player = Rc::clone(player);
+            content = content.push(player.borrow().clone().to_bowling_container());
         }
 
         content = content.push(row![
@@ -186,8 +200,12 @@ impl GameState {
     fn event_column(&self) -> Column<Event> {
         let mut column = Column::new();
 
-        for event in &self.events {
+        for event in &self.event_history {
             if let Some(event_container) = event.to_container() {
+                column = column.push(event_container);
+            }
+
+            if let Some(event_container) = self.events[event.event_index].to_container() {
                 column = column.push(event_container);
             }
         }
@@ -200,9 +218,7 @@ impl GameState {
         let mut column = Column::new();
 
         for player in &team.players {
-            if let Some(player) = player {
-                column = column.push(player.to_container());
-            }
+            column = column.push(player.borrow().clone().to_container());
         }
 
         column
@@ -216,6 +232,7 @@ impl GameState {
             team_a: Team::new(),
             team_b: Team::new(),
             events: vec![],
+            event_history: vec![],
             batting_team: TeamType::A,
             batter_a: None,
             batter_b: None,
@@ -252,13 +269,6 @@ impl GameState {
         team
     }
 
-    fn set_batting_team(&mut self, team: Team) {
-        match self.batting_team {
-            TeamType::A => self.team_a = team,
-            TeamType::B => self.team_b = team,
-        }
-    }
-
     pub fn bowling_team(&self) -> &Team {
         let team = match self.batting_team {
             TeamType::A => &self.team_b,
@@ -268,17 +278,17 @@ impl GameState {
         team
     }
 
-    pub fn bowling_team_mut(&mut self) -> &mut Team {
-        let team = match self.batting_team {
-            TeamType::A => &mut self.team_b,
-            TeamType::B => &mut self.team_a,
-        };
-
-        team
-    }
-
     fn add_event(&mut self, event: GameEvent) {
-        self.events.push(event);
+        let event_index = self.events.len();
+        let batter = self.on_strike_batter();
+        let bowler = if let Some(bowler) = &self.bowler {
+            Some(Rc::clone(bowler))
+        } else {
+            None
+        };
+        self.events.push(event.clone());
+        self.event_history
+            .push(GameEventHistory::new(event_index, bowler, batter));
     }
 
     pub fn add_player(&mut self, player: Player) {
@@ -307,17 +317,23 @@ impl GameState {
     }
 
     fn add_runs(&mut self, runs: &u32) {
-        let on_strike_batter = self
-            .on_strike_batter_mut()
-            .expect("A player should be on strike when add_runs is callled");
+        let on_strike_batter = Rc::clone(
+            &self
+                .on_strike_batter()
+                .expect("A player should be on strike when add_runs is callled"),
+        );
+        let mut on_strike_batter = on_strike_batter.borrow_mut();
 
         on_strike_batter.balls_faced += 1;
         on_strike_batter.runs_scored += runs;
 
-        let bowler = self
-            .bowler
-            .as_mut()
-            .expect("A player should be bowling when add_runs is callled");
+        let bowler = Rc::clone(
+            &self
+                .bowler
+                .as_ref()
+                .expect("A player should be bowling when add_runs is callled"),
+        );
+        let mut bowler = bowler.borrow_mut();
 
         bowler.overs_bowled.add_ball_bowler();
         bowler.runs_conceded += runs;
@@ -332,21 +348,25 @@ impl GameState {
     }
 
     fn add_wicket(&mut self, how_out: &HowOut) {
-        let mut player = self
-            .on_strike_batter_mut()
-            .expect("There should be an on strike batter when a wicket occurs")
-            .to_owned();
-        player.how_out = how_out.clone();
+        let player = Rc::clone(
+            &self
+                .on_strike_batter()
+                .expect("There should be an on strike batter when a wicket occurs")
+                .to_owned(),
+        );
+        player.borrow_mut().how_out = how_out.clone();
 
         let team = self.batting_team_mut();
         team.wickets += 1;
         team.overs.add_ball();
-        team.put_player(player.to_owned());
 
-        let bowler = self
-            .bowler
-            .as_mut()
-            .expect("There should be a bowler when a wicket occurs");
+        let bowler = Rc::clone(
+            &self
+                .bowler
+                .as_ref()
+                .expect("There should be a bowler when a wicket occurs"),
+        );
+        let mut bowler = bowler.borrow_mut();
         bowler.wickets_taken += 1;
         bowler.overs_bowled.add_ball_bowler();
 
@@ -369,14 +389,22 @@ impl GameState {
         None
     }
 
-    pub fn on_strike_batter_mut(&mut self) -> Option<&mut Player> {
-        match self.on_strike_batter {
-            PlayerType::A => self.batter_a.as_mut(),
-            PlayerType::B => self.batter_b.as_mut(),
+    pub fn on_strike_batter(&self) -> Option<Rc<RefCell<Player>>> {
+        let batter = match self.on_strike_batter {
+            PlayerType::A => &self.batter_a,
+            PlayerType::B => &self.batter_b,
+        };
+
+        let mut player_ref = None;
+
+        if let Some(player) = batter {
+            player_ref = Some(Rc::clone(player));
         }
+
+        player_ref
     }
 
-    pub fn set_on_strike_batter(&mut self, batter: Option<Player>) {
+    pub fn set_on_strike_batter(&mut self, batter: Option<Rc<RefCell<Player>>>) {
         match self.on_strike_batter {
             PlayerType::A => self.batter_a = batter,
             PlayerType::B => self.batter_b = batter,
@@ -388,10 +416,7 @@ impl GameState {
     }
 
     fn end_over(&mut self) {
-        if let Some(bowler) = self.bowler.clone() {
-            self.bowling_team_mut().put_player(bowler);
-            self.bowler = None;
-        }
+        self.bowler = None;
 
         self.batting_team_mut().overs.end_over();
         self.change_strike();

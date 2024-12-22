@@ -17,14 +17,14 @@ pub struct Player {
     pub wickets_taken: u32,
     pub overs_bowled: Overs,
     extras: Extras,
-    pub order: u32,
-    pub batting_order: Option<u32>,
-    pub bowling_order: Option<u32>,
+    pub order: usize,
+    pub batting_order: Option<usize>,
+    pub bowling_order: Option<usize>,
 }
 
 impl Player {
     // logic
-    pub fn new(first_name: &str, last_name: &str, order: u32) -> Self {
+    pub fn new(first_name: &str, last_name: &str, order: usize) -> Self {
         Player {
             first_name: String::from(first_name),
             last_name: String::from(last_name),
@@ -53,11 +53,11 @@ impl Player {
 
 impl Player {
     // views
-    pub fn to_container(&self) -> Container<Event> {
+    pub fn to_container<'a>(self) -> Container<'a, Event> {
         container(text(self.to_string()))
     }
 
-    pub fn to_batting_container(&self) -> Container<Event> {
+    pub fn to_batting_container<'a>(self) -> Container<'a, Event> {
         container(text(format!(
             "{name}: {runs} ({balls})",
             name = self.to_string(),
@@ -66,7 +66,7 @@ impl Player {
         )))
     }
 
-    pub fn to_bowling_container(&self) -> Container<Event> {
+    pub fn to_bowling_container<'a>(self) -> Container<'a, Event> {
         container(text(format!(
             "{name}: {wickets}/{runs} {overs}.{balls}",
             name = self.to_string(),

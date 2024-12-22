@@ -6,7 +6,7 @@ use iced::Element;
 use macros::AsEvent;
 
 pub struct BowlerSelect {
-    selected_player: Option<u32>,
+    selected_player: Option<usize>,
 }
 
 impl Component for BowlerSelect {
@@ -26,10 +26,7 @@ impl Component for BowlerSelect {
             BowlerSelectEvent::BowlerSelected(order) => self.selected_player = Some(order),
             BowlerSelectEvent::SubmitBowler => {
                 game_state.update(GameEvent::SelectBowler(
-                    game_state
-                        .bowling_team()
-                        .player_from_order(self.selected_player.expect("Bowler should be selected"))
-                        .expect("Selected player should exist"),
+                    self.selected_player.expect("Selected player should exist"),
                 ));
                 page = Some(Page::Scoring);
             }
@@ -59,14 +56,13 @@ impl BowlerSelect {
         column = column.push(text("Select bowler"));
 
         for player in &team.players {
-            if let Some(player) = player {
-                column = column.push(radio(
-                    player.to_string(),
-                    player.order,
-                    self.selected_player,
-                    |selection| BowlerSelectEvent::BowlerSelected(selection).as_event(),
-                ));
-            };
+            let player = player.borrow();
+            column = column.push(radio(
+                player.to_string(),
+                player.order,
+                self.selected_player,
+                |selection| BowlerSelectEvent::BowlerSelected(selection).as_event(),
+            ));
         }
 
         if let Some(_) = self.selected_player {
@@ -80,6 +76,6 @@ impl BowlerSelect {
 
 #[derive(Clone, Debug, AsEvent)]
 pub enum BowlerSelectEvent {
-    BowlerSelected(u32),
+    BowlerSelected(usize),
     SubmitBowler,
 }

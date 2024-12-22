@@ -8,7 +8,7 @@ use iced::Element;
 use macros::AsEvent;
 
 pub struct BatterSelect {
-    selected_player: Option<u32>,
+    selected_player: Option<usize>,
 }
 
 impl Component for BatterSelect {
@@ -31,22 +31,12 @@ impl Component for BatterSelect {
                     match batter {
                         ReplaceBatter::OnStrike => {
                             game_state.update(GameEvent::SelectOnStrike(
-                                game_state
-                                    .batting_team()
-                                    .player_from_order(
-                                        self.selected_player.expect("Batter should be selected"),
-                                    )
-                                    .expect("Selected player should exist"),
+                                self.selected_player.expect("Selected player should exist"),
                             ));
                         }
                         ReplaceBatter::OffStrike => {
                             game_state.update(GameEvent::SelectOffStrike(
-                                game_state
-                                    .batting_team()
-                                    .player_from_order(
-                                        self.selected_player.expect("Batter should be selected"),
-                                    )
-                                    .expect("Selected player should exist"),
+                                self.selected_player.expect("Selected player should exist"),
                             ));
                         }
                     }
@@ -89,21 +79,21 @@ impl BatterSelect {
         let mut column = Column::new();
 
         for player in &team.players {
-            if let Some(player) = player {
-                if player.how_out != HowOut::DidNotBat
-                    && player.how_out != HowOut::RetiredHurt
-                    && player.how_out != HowOut::RetiredNotOut
-                {
-                    continue;
-                }
+            let player = player.borrow();
+            if (player.how_out != HowOut::DidNotBat
+                && player.how_out != HowOut::RetiredHurt
+                && player.how_out != HowOut::RetiredNotOut)
+                || player.how_out == HowOut::NotOut
+            {
+                continue;
+            }
 
-                column = column.push(radio(
-                    player.to_string(),
-                    player.order,
-                    self.selected_player,
-                    |selection| BatterSelectEvent::BatterSelected(selection).as_event(),
-                ));
-            };
+            column = column.push(radio(
+                player.to_string(),
+                player.order,
+                self.selected_player,
+                |selection| BatterSelectEvent::BatterSelected(selection).as_event(),
+            ));
         }
 
         if let Some(_) = self.selected_player {
@@ -129,6 +119,6 @@ impl BatterSelect {
 
 #[derive(Clone, Debug, AsEvent)]
 pub enum BatterSelectEvent {
-    BatterSelected(u32),
+    BatterSelected(usize),
     SubmitBatter,
 }

@@ -4,10 +4,12 @@ use crate::state::game_state::extras::{Extra, ExtraType, Extras};
 use crate::state::game_state::overs::Overs;
 use player::Player;
 use serde::{Deserialize, Serialize};
+use std::cell::RefCell;
+use std::rc::Rc;
 
 #[derive(Debug, Clone)]
 pub struct Team {
-    pub players: Vec<Option<Player>>,
+    pub players: Vec<Rc<RefCell<Player>>>,
     pub team_name: String,
     pub runs: u32,
     pub wickets: u32,
@@ -28,45 +30,7 @@ impl Team {
     }
 
     pub fn add_player(&mut self, player: Player) {
-        self.players.push(Some(player));
-    }
-
-    pub fn player_from_order(&self, order: u32) -> Option<Player> {
-        for player in &self.players {
-            if let Some(player) = player {
-                if player.order == order {
-                    return Some(player.clone());
-                }
-            }
-        }
-
-        None
-    }
-
-    pub fn take_player(&mut self, player: Player) -> Player {
-        let mut found_player_index: Option<usize> = None;
-
-        for (i, team_player) in self.players.iter().enumerate() {
-            if let Some(team_player) = team_player {
-                if player == *team_player {
-                    found_player_index = Some(i);
-                }
-            }
-        }
-
-        let found_player_index = found_player_index.expect("Player should exist");
-        std::mem::replace(&mut self.players[found_player_index], None)
-            .expect("Should be replacing a not None player")
-    }
-
-    pub fn put_player(&mut self, player: Player) {
-        let index = player.order as usize;
-
-        if self.players[index] != None {
-            panic!("There should not be a player at {}", index);
-        }
-
-        self.players[index] = Some(player);
+        self.players.push(Rc::new(RefCell::new(player)));
     }
 
     pub fn add_extra(&mut self, extra: &Extra) {

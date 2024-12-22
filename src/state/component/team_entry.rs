@@ -10,7 +10,7 @@ use macros::AsEvent;
 pub struct TeamEntry {
     first_name_input: String,
     last_name_input: String,
-    order: u32,
+    order: usize,
 }
 
 impl Component for TeamEntry {
