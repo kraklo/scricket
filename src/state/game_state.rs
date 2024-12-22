@@ -5,8 +5,8 @@ pub mod team;
 pub mod wickets;
 
 use crate::state::{Event, Page};
-use event::ExtraType;
 use event::GameEvent;
+use extras::ExtraType;
 use iced::widget::{button, column, row, scrollable, text, Column, Row};
 use iced::Element;
 pub use team::player::{Player, PlayerType};
@@ -34,7 +34,7 @@ impl GameState {
 
         match event {
             GameEvent::Runs(runs) => {
-                self.add_runs(runs);
+                self.add_runs(&runs);
 
                 if self.is_end_over() {
                     self.end_over();
@@ -42,7 +42,7 @@ impl GameState {
                 }
             }
             GameEvent::Wicket(how_out) => {
-                self.add_wicket(how_out);
+                self.add_wicket(&how_out);
 
                 if self.is_end_over() {
                     self.end_over();
@@ -97,29 +97,19 @@ impl GameState {
                 let mut batter = self.on_strike_batter_mut().unwrap().to_owned();
                 let mut bowler = self.bowler.as_ref().unwrap().to_owned();
 
+                bowler.add_extra(&extra);
+                batting_team.add_extra(&extra);
+
                 match extra.extra_type {
-                    ExtraType::Wide => {
-                        let runs = extra.runs + 1;
-                        batting_team.runs += runs;
-                        bowler.runs_conceded += runs;
-                    }
                     ExtraType::NoBall => {
-                        let runs = extra.runs + 1;
-                        batting_team.runs += runs;
-                        bowler.runs_conceded += runs;
+                        batter.runs_scored += extra.runs;
                         batter.balls_faced += 1;
                     }
-                    ExtraType::Bye => {
-                        batting_team.runs += extra.runs;
+                    ExtraType::Bye | ExtraType::LegBye => {
                         batter.balls_faced += 1;
+                        batting_team.overs.add_ball();
                     }
-                    ExtraType::LegBye => {
-                        batting_team.runs += extra.runs;
-                        batter.balls_faced += 1;
-                    }
-                    ExtraType::PenaltyRuns => {
-                        batting_team.runs += extra.runs;
-                    }
+                    _ => (),
                 }
 
                 self.set_batting_team(batting_team);
@@ -170,6 +160,8 @@ impl GameState {
             batting_container = batting_container.push(player.to_batting_container());
             content = content.push(batting_container);
         }
+
+        content = content.push(team.extras.to_container());
 
         if let Some(player) = &self.bowler {
             content = content.push(player.to_bowling_container());
@@ -314,7 +306,7 @@ impl GameState {
         }
     }
 
-    fn add_runs(&mut self, runs: u32) {
+    fn add_runs(&mut self, runs: &u32) {
         let on_strike_batter = self
             .on_strike_batter_mut()
             .expect("A player should be on strike when add_runs is callled");
@@ -339,12 +331,12 @@ impl GameState {
         }
     }
 
-    fn add_wicket(&mut self, how_out: HowOut) {
+    fn add_wicket(&mut self, how_out: &HowOut) {
         let mut player = self
             .on_strike_batter_mut()
             .expect("There should be an on strike batter when a wicket occurs")
             .to_owned();
-        player.how_out = how_out;
+        player.how_out = how_out.clone();
 
         let team = self.batting_team_mut();
         team.wickets += 1;

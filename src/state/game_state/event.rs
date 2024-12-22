@@ -1,8 +1,9 @@
 use super::Event;
-use super::{HowOut, Player, TeamType};
+use super::{Player, TeamType};
+use crate::state::game_state::extras::Extra;
+use crate::state::game_state::wickets::HowOut;
 use iced::widget::{container, text, Container};
 use serde::{Deserialize, Serialize};
-use strum::{Display, EnumIter};
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub enum GameEvent {
@@ -34,28 +35,4 @@ impl GameEvent {
 
         Some(container(text(container_text)))
     }
-}
-
-#[derive(Debug, Clone, Deserialize, Serialize)]
-pub struct Extra {
-    pub runs: u32,
-    pub extra_type: ExtraType,
-}
-
-impl Extra {
-    pub fn new(runs: u32, extra_type: ExtraType) -> Self {
-        Self { runs, extra_type }
-    }
-}
-
-#[derive(Debug, Clone, Deserialize, Serialize, Display, EnumIter)]
-pub enum ExtraType {
-    Wide,
-    #[strum(to_string = "No ball")]
-    NoBall,
-    Bye,
-    #[strum(to_string = "Leg bye")]
-    LegBye,
-    #[strum(to_string = "Penalty runs")]
-    PenaltyRuns,
 }

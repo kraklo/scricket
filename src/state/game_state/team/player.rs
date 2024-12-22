@@ -1,4 +1,4 @@
-use crate::state::game_state::extras::Extras;
+use crate::state::game_state::extras::{Extra, ExtraType, Extras};
 use crate::state::game_state::overs::Overs;
 use crate::state::game_state::wickets::HowOut;
 use crate::state::Event;
@@ -23,6 +23,7 @@ pub struct Player {
 }
 
 impl Player {
+    // logic
     pub fn new(first_name: &str, last_name: &str, order: u32) -> Self {
         Player {
             first_name: String::from(first_name),
@@ -39,9 +40,19 @@ impl Player {
             bowling_order: None,
         }
     }
+
+    pub fn add_extra(&mut self, extra: &Extra) {
+        match extra.extra_type {
+            ExtraType::Bye | ExtraType::LegBye => self.overs_bowled.add_ball_bowler(),
+            _ => (),
+        }
+
+        self.extras.add_extra(extra);
+    }
 }
 
 impl Player {
+    // views
     pub fn to_container(&self) -> Container<Event> {
         container(text(self.to_string()))
     }

@@ -1,7 +1,7 @@
 use super::runs_button::RunsButton;
 use super::{AsEvent, Component, ComponentEvent};
 use crate::state::game_state::event::GameEvent;
-use crate::state::game_state::event::{Extra, ExtraType};
+use crate::state::game_state::extras::{Extra, ExtraType};
 use crate::state::{Event, GameState, Page};
 use iced::widget::{button, column, radio, text};
 use iced::Element;
