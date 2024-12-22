@@ -63,6 +63,8 @@ impl GameState {
                     batter.batting_order = Some((team.wickets + 1) as usize);
                 }
 
+                batter.how_out = HowOut::NotOut;
+
                 match self.on_strike_batter {
                     PlayerType::A => self.batter_a = Some(Rc::clone(&batter_ref)),
                     PlayerType::B => self.batter_b = Some(Rc::clone(&batter_ref)),
@@ -78,6 +80,8 @@ impl GameState {
                 } else {
                     batter.batting_order = Some((team.wickets + 1) as usize);
                 }
+
+                batter.how_out = HowOut::NotOut;
 
                 match self.on_strike_batter {
                     PlayerType::A => self.batter_b = Some(Rc::clone(&batter_ref)),
