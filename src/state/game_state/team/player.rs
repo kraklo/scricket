@@ -68,7 +68,7 @@ impl Player {
 
     pub fn to_bowling_container<'a>(self) -> Container<'a, Event> {
         container(text(format!(
-            "{name}: {wickets}/{runs} {overs}.{balls}",
+            "{name}: {wickets}/{runs} ({overs}.{balls})",
             name = self.to_string(),
             wickets = self.wickets_taken,
             runs = self.runs_conceded,

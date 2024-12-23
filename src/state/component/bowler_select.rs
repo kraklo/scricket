@@ -85,12 +85,21 @@ impl BowlerSelect {
 
     fn display_bowler(&self, player: &Rc<RefCell<Player>>) -> Radio<Event> {
         let player = player.borrow();
-        radio(
-            player.to_string(),
-            player.order,
-            self.selected_player,
-            |selection| BowlerSelectEvent::BowlerSelected(selection).as_event(),
-        )
+        let mut label = player.to_string();
+
+        if player.bowling_order != None {
+            label += &format!(
+                " {}/{} ({}.{})",
+                player.wickets_taken,
+                player.runs_conceded,
+                player.overs_bowled.overs,
+                player.overs_bowled.balls,
+            );
+        }
+
+        radio(label, player.order, self.selected_player, |selection| {
+            BowlerSelectEvent::BowlerSelected(selection).as_event()
+        })
     }
 }
 
