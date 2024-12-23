@@ -10,6 +10,7 @@ use macros::AsEvent;
 pub struct TeamEntry {
     first_name_input: String,
     last_name_input: String,
+    team_name_input: String,
     order: usize,
 }
 
@@ -41,9 +42,11 @@ impl Component for TeamEntry {
                     page = Some(Page::SelectBatter);
                 }
 
-                game_state.update(GameEvent::SubmitTeam);
+                game_state.update(GameEvent::SubmitTeam(self.team_name_input.clone()));
                 self.order = 0;
+                self.team_name_input.clear();
             }
+            TeamEntryEvent::TeamNameChanged(team_name) => self.team_name_input = team_name,
         }
 
         (game_state, page)
@@ -62,6 +65,10 @@ impl Component for TeamEntry {
         ];
 
         if game_state.team_length() >= 11 {
+            column = column.push(
+                text_input("Team Name", &self.team_name_input)
+                    .on_input(|input| TeamEntryEvent::TeamNameChanged(input).as_event()),
+            );
             column =
                 column.push(button("Confirm Team").on_press(TeamEntryEvent::SubmitTeam.as_event()));
         }
@@ -75,6 +82,7 @@ impl TeamEntry {
         TeamEntry {
             first_name_input: String::new(),
             last_name_input: String::new(),
+            team_name_input: String::new(),
             order: 0,
         }
     }
@@ -84,6 +92,7 @@ impl TeamEntry {
 pub enum TeamEntryEvent {
     FirstNameChanged(String),
     LastNameChanged(String),
+    TeamNameChanged(String),
     SubmitName,
     SubmitTeam,
 }

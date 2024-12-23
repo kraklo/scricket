@@ -50,7 +50,7 @@ impl GameState {
                 self.add_wicket(&how_out);
 
                 if self.batting_team().wickets == 10 {
-                    self.update(GameEvent::EndInnings(self.batting_team.clone()));
+                    self.update(GameEvent::EndInnings);
                     self.update(GameEvent::StartInnings(self.batting_team.clone()));
                     page = Some(Page::SelectBatter);
                 } else if self.is_end_over() {
@@ -115,7 +115,10 @@ impl GameState {
 
                 self.bowler = Some(Rc::clone(&bowler_ref));
             }
-            GameEvent::SubmitTeam => self.change_team(),
+            GameEvent::SubmitTeam(team_name) => {
+                self.batting_team_mut().team_name = team_name;
+                self.change_team();
+            }
             GameEvent::AddPlayer(player) => self.add_player(player),
             GameEvent::Extra(extra) => {
                 let batter_ref = Rc::clone(&self.on_strike_batter().unwrap());
@@ -154,8 +157,18 @@ impl GameState {
             GameEvent::StartInnings(team_type) => {
                 self.batting_team = team_type;
             }
-            GameEvent::EndInnings(team_type) => {
-                self.end_innings(team_type);
+            GameEvent::EndInnings => {
+                self.batting_team = match self.batting_team {
+                    TeamType::A => TeamType::B,
+                    TeamType::B => TeamType::A,
+                };
+
+                self.batter_a = None;
+                self.batter_b = None;
+                self.on_strike_batter = PlayerType::A;
+                self.bowler = None;
+                self.last_bowler = None;
+                self.last_last_bowler = None;
             }
             _ => (),
         }
@@ -459,24 +472,6 @@ impl GameState {
         self.batting_team_mut().overs.end_over();
         self.change_strike();
         self.add_event(GameEvent::EndOver);
-    }
-
-    fn end_innings(&mut self, team_type: TeamType) {
-        if team_type != self.batting_team {
-            panic!("Mismatched team types");
-        }
-
-        self.batting_team = match self.batting_team {
-            TeamType::A => TeamType::B,
-            TeamType::B => TeamType::A,
-        };
-
-        self.batter_a = None;
-        self.batter_b = None;
-        self.on_strike_batter = PlayerType::A;
-        self.bowler = None;
-        self.last_bowler = None;
-        self.last_last_bowler = None;
     }
 }
 

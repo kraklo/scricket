@@ -15,12 +15,12 @@ pub enum GameEvent {
     StartOver,
     EndOver,
     StartInnings(TeamType),
-    EndInnings(TeamType),
+    EndInnings,
     SelectOnStrike(usize),
     SelectOffStrike(usize),
     SelectBowler(usize),
     AddPlayer(Player),
-    SubmitTeam,
+    SubmitTeam(String),
 }
 
 impl GameEvent {
