@@ -26,6 +26,8 @@ pub struct GameState {
     batter_b: Option<Rc<RefCell<Player>>>,
     on_strike_batter: PlayerType,
     pub bowler: Option<Rc<RefCell<Player>>>,
+    last_bowler: Option<usize>,
+    pub last_last_bowler: Option<usize>,
 }
 
 impl GameState {
@@ -89,9 +91,21 @@ impl GameState {
                 }
             }
             GameEvent::SelectBowler(player) => {
-                let bowling_order = 0; // TODO: find a way to calculate this
-
                 let bowler_ref = Rc::clone(&self.bowling_team().players[player]);
+                let bowler = bowler_ref.borrow();
+
+                let bowling_order = match self.last_bowler {
+                    Some(_) => {
+                        if bowler.bowling_order == None {
+                            self.bowling_team().next_bowling_order()
+                        } else {
+                            bowler.bowling_order.unwrap()
+                        }
+                    }
+                    None => 0,
+                };
+                drop(bowler); // drop to borrow mut
+
                 let mut bowler = bowler_ref.borrow_mut();
                 bowler.bowling_order = Some(bowling_order);
 
@@ -242,6 +256,8 @@ impl GameState {
             batter_b: None,
             on_strike_batter: PlayerType::A,
             bowler: None,
+            last_bowler: None,
+            last_last_bowler: None,
         }
     }
 
@@ -420,6 +436,14 @@ impl GameState {
     }
 
     fn end_over(&mut self) {
+        self.last_last_bowler = self.last_bowler;
+        self.last_bowler = Some(
+            self.bowler
+                .as_ref()
+                .expect("There should be a bowler")
+                .borrow()
+                .order,
+        );
         self.bowler = None;
 
         self.batting_team_mut().overs.end_over();

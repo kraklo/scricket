@@ -80,7 +80,7 @@ impl State {
         match page {
             Page::Start => self.component = Box::new(Start::new()),
             Page::SelectBatter => self.component = Box::new(BatterSelect::new()),
-            Page::SelectBowler => self.component = Box::new(BowlerSelect::new()),
+            Page::SelectBowler => self.component = Box::new(BowlerSelect::new(&self.game_state)),
             Page::TeamEntry => self.component = Box::new(TeamEntry::new()),
             Page::SelectWicket => self.component = Box::new(WicketSelect::new()),
             Page::SelectExtra => self.component = Box::new(ExtraSelect::new()),

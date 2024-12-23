@@ -1,9 +1,12 @@
 use super::{AsEvent, Component, ComponentEvent};
 use crate::state::game_state::event::GameEvent;
+use crate::state::game_state::team::player::Player;
 use crate::state::{Event, GameState, Page};
-use iced::widget::{button, radio, text, Column};
+use iced::widget::{button, radio, text, Column, Radio};
 use iced::Element;
 use macros::AsEvent;
+use std::cell::RefCell;
+use std::rc::Rc;
 
 pub struct BowlerSelect {
     selected_player: Option<usize>,
@@ -44,25 +47,32 @@ impl Component for BowlerSelect {
 }
 
 impl BowlerSelect {
-    pub fn new() -> Self {
+    pub fn new(game_state: &GameState) -> Self {
         BowlerSelect {
-            selected_player: None,
+            selected_player: game_state.last_last_bowler,
         }
     }
 
-    fn select_bowler<'a>(&self, game_state: &'a GameState) -> Element<'a, Event> {
+    fn select_bowler<'a>(&'a self, game_state: &'a GameState) -> Element<'a, Event> {
         let team = game_state.bowling_team();
         let mut column = Column::new();
         column = column.push(text("Select bowler"));
 
-        for player in &team.players {
-            let player = player.borrow();
-            column = column.push(radio(
-                player.to_string(),
-                player.order,
-                self.selected_player,
-                |selection| BowlerSelectEvent::BowlerSelected(selection).as_event(),
-            ));
+        let bowled_players = team.bowled_players_in_order();
+
+        if bowled_players.len() > 0 {
+            for player in bowled_players {
+                column = column.push(self.display_bowler(&player));
+            }
+        }
+
+        let not_bowled_players = team.not_bowled_players();
+
+        if not_bowled_players.len() > 0 {
+            column = column.push("Players that haven't bowled yet:");
+            for player in not_bowled_players {
+                column = column.push(self.display_bowler(&player));
+            }
         }
 
         if let Some(_) = self.selected_player {
@@ -71,6 +81,16 @@ impl BowlerSelect {
         }
 
         column.into()
+    }
+
+    fn display_bowler(&self, player: &Rc<RefCell<Player>>) -> Radio<Event> {
+        let player = player.borrow();
+        radio(
+            player.to_string(),
+            player.order,
+            self.selected_player,
+            |selection| BowlerSelectEvent::BowlerSelected(selection).as_event(),
+        )
     }
 }
 
