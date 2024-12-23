@@ -16,6 +16,7 @@ use serde_json;
 use component::batter_select::BatterSelect;
 use component::bowler_select::BowlerSelect;
 use component::extra_select::ExtraSelect;
+use component::innings_select::InningsSelect;
 use component::start::Start;
 use component::team_entry::TeamEntry;
 use component::wicket_select::WicketSelect;
@@ -115,6 +116,7 @@ impl State {
             Page::TeamEntry => self.component = Box::new(TeamEntry::new()),
             Page::SelectWicket => self.component = Box::new(WicketSelect::new()),
             Page::SelectExtra => self.component = Box::new(ExtraSelect::new()),
+            Page::SelectInnings => self.component = Box::new(InningsSelect::new()),
             _ => (),
         }
 
@@ -141,4 +143,5 @@ pub enum Page {
     SelectBowler,
     SelectWicket,
     SelectExtra,
+    SelectInnings,
 }

@@ -39,7 +39,7 @@ impl Component for TeamEntry {
             }
             TeamEntryEvent::SubmitTeam => {
                 if game_state.batting_team == TeamType::B {
-                    page = Some(Page::SelectBatter);
+                    page = Some(Page::SelectInnings);
                 }
 
                 game_state.update(GameEvent::SubmitTeam(self.team_name_input.clone()));
