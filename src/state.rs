@@ -11,6 +11,7 @@ use game_state::event::GameEvent;
 use game_state::GameState;
 use iced::Element;
 use rfd::FileDialog;
+use serde_json;
 
 use component::batter_select::BatterSelect;
 use component::bowler_select::BowlerSelect;
@@ -62,17 +63,47 @@ impl State {
 
 impl State {
     fn load_game(&mut self) {
-        let file_path = FileDialog::new().pick_file().expect("invalid path");
-        let data = fs::read(file_path).expect("file reading error");
-        let deserialized: Vec<GameEvent> =
-            bincode::deserialize(data.as_slice()).expect("error deserialising");
+        let file_path = FileDialog::new()
+            .add_filter("scricket", &["scr"])
+            .add_filter("json", &["json"])
+            .pick_file()
+            .expect("invalid path");
+
+        let extension = file_path.extension().unwrap().to_str().unwrap();
+        let data = fs::read(&file_path).expect("file reading error");
+
+        let deserialized: Vec<GameEvent> = if extension == "scr" {
+            bincode::deserialize(data.as_slice()).expect("error deserialising")
+        } else if extension == "json" {
+            serde_json::from_slice(data.as_slice()).expect("error deserialising")
+        } else {
+            panic!("{} is not a valid extension", extension)
+        };
+
         self.set_page(Page::Scoring);
         self.game_state = GameState::from_events(deserialized);
     }
 
     fn save_game(&self) {
-        let file_path = FileDialog::new().save_file().expect("invalid path");
-        let serialized = bincode::serialize(&self.game_state.events).expect("error serialising");
+        let file_path = FileDialog::new()
+            .add_filter("scricket", &["scr"])
+            .add_filter("json", &["json"])
+            .save_file()
+            .expect("invalid path");
+
+        let extension = file_path.extension().unwrap().to_str().unwrap();
+
+        let serialized = if extension == "scr" {
+            bincode::serialize(&self.game_state.events).expect("error serialising")
+        } else if extension == "json" {
+            serde_json::to_string(&self.game_state.events)
+                .expect("error serializing")
+                .as_bytes()
+                .to_vec()
+        } else {
+            panic!("{} is not a valid extension", extension)
+        };
+
         fs::write(file_path, serialized.as_slice()).expect("error writing file");
     }
 
