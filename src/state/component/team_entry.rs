@@ -5,7 +5,7 @@ use crate::state::game_state::TeamType;
 use crate::state::{Event, GameState, Page};
 use iced::widget::{button, column, row, text_input};
 use iced::Element;
-use macros::AsEvent;
+use macros::AsComponentEvent;
 
 pub struct TeamEntry {
     first_name_input: String,
@@ -88,7 +88,7 @@ impl TeamEntry {
     }
 }
 
-#[derive(Clone, Debug, AsEvent)]
+#[derive(Clone, Debug, AsComponentEvent)]
 pub enum TeamEntryEvent {
     FirstNameChanged(String),
     LastNameChanged(String),

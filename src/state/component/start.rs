@@ -2,7 +2,7 @@ use super::{AsEvent, Component, ComponentEvent};
 use crate::state::{Event, GameState, Page};
 use iced::widget::{button, row};
 use iced::Element;
-use macros::AsEvent;
+use macros::AsComponentEvent;
 
 pub struct Start {}
 
@@ -45,7 +45,7 @@ impl Start {
     }
 }
 
-#[derive(Clone, Debug, AsEvent)]
+#[derive(Clone, Debug, AsComponentEvent)]
 pub enum StartEvent {
     NewGame,
 }

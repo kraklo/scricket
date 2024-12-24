@@ -4,7 +4,7 @@ use crate::state::game_state::team::player::Player;
 use crate::state::{Event, GameState, Page};
 use iced::widget::{button, radio, text, Column, Radio};
 use iced::Element;
-use macros::AsEvent;
+use macros::AsComponentEvent;
 use std::cell::RefCell;
 use std::rc::Rc;
 
@@ -103,7 +103,7 @@ impl BowlerSelect {
     }
 }
 
-#[derive(Clone, Debug, AsEvent)]
+#[derive(Clone, Debug, AsComponentEvent)]
 pub enum BowlerSelectEvent {
     BowlerSelected(usize),
     SubmitBowler,

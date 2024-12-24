@@ -1,7 +1,7 @@
+use super::wickets::WicketEvent;
 use super::Event;
 use super::{Player, TeamType};
 use crate::state::game_state::extras::Extra;
-use crate::state::game_state::wickets::HowOut;
 use iced::widget::{container, text, Container};
 use serde::{Deserialize, Serialize};
 use std::cell::RefCell;
@@ -11,7 +11,7 @@ use std::rc::Rc;
 pub enum GameEvent {
     Runs(u32),
     Extra(Extra),
-    Wicket(HowOut),
+    Wicket(WicketEvent),
     StartOver,
     EndOver,
     StartInnings(TeamType),
@@ -30,7 +30,9 @@ impl GameEvent {
                 "{runs} run{plural}",
                 plural = if *runs == 1 { "" } else { "s" }
             ),
-            Self::Wicket(how_out) => String::from(format!("wicket: {}", how_out.to_string())),
+            Self::Wicket(wicket_event) => {
+                String::from(format!("wicket: {}", wicket_event.how_out.to_string()))
+            }
             Self::Extra(extra) => String::from(format!("extra: {}", extra.extra_type.to_string())),
             _ => return None,
         };

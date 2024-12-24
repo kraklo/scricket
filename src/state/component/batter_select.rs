@@ -5,7 +5,7 @@ use crate::state::game_state::ReplaceBatter;
 use crate::state::{Event, GameState, Page};
 use iced::widget::{button, column, radio, text, Column};
 use iced::Element;
-use macros::AsEvent;
+use macros::AsComponentEvent;
 
 pub struct BatterSelect {
     selected_player: Option<usize>,
@@ -117,7 +117,7 @@ impl BatterSelect {
     }
 }
 
-#[derive(Clone, Debug, AsEvent)]
+#[derive(Clone, Debug, AsComponentEvent)]
 pub enum BatterSelectEvent {
     BatterSelected(usize),
     SubmitBatter,

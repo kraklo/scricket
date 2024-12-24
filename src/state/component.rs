@@ -1,6 +1,7 @@
 pub mod batter_select;
 pub mod bowler_select;
 pub mod extra_select;
+pub mod fielder_select;
 pub mod innings_select;
 pub mod runs_button;
 pub mod start;
@@ -11,6 +12,7 @@ use crate::state::{Event, GameState, Page};
 use batter_select::BatterSelectEvent;
 use bowler_select::BowlerSelectEvent;
 use extra_select::ExtraSelectEvent;
+use fielder_select::FielderSelectEvent;
 use iced::Element;
 use innings_select::InningsSelectEvent;
 use runs_button::RunsButtonEvent;
@@ -34,6 +36,23 @@ pub enum ComponentEvent {
     ExtraSelectEvent(ExtraSelectEvent),
     RunsButtonEvent(RunsButtonEvent),
     InningsSelectEvent(InningsSelectEvent),
+    SubcomponentEvent(SubcomponentEvent),
+}
+
+pub trait Subcomponent<T> {
+    fn update(
+        &mut self,
+        event: SubcomponentEvent,
+        game_state: GameState,
+    ) -> (GameState, Option<Page>);
+    fn view<'a>(&'a self, game_state: &'a GameState) -> Element<'a, Event>;
+    fn can_submit(&self) -> bool;
+    fn get_value(&self) -> Option<T>;
+}
+
+#[derive(Clone, Debug)]
+pub enum SubcomponentEvent {
+    FielderSelectEvent(FielderSelectEvent),
 }
 
 pub trait AsEvent {

@@ -2,7 +2,7 @@ use super::{AsEvent, ComponentEvent};
 use crate::state::event::Event;
 use iced::widget::{button, row, text};
 use iced::Element;
-use macros::AsEvent;
+use macros::AsComponentEvent;
 
 pub struct RunsButton {
     pub runs: u32,
@@ -42,7 +42,7 @@ impl RunsButton {
     }
 }
 
-#[derive(Debug, Clone, AsEvent)]
+#[derive(Debug, Clone, AsComponentEvent)]
 pub enum RunsButtonEvent {
     Add,
     Subtract,

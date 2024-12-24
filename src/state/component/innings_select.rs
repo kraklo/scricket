@@ -4,7 +4,7 @@ use crate::state::game_state::TeamType;
 use crate::state::{Event, GameState, Page};
 use iced::widget::{button, column, radio, text};
 use iced::Element;
-use macros::AsEvent;
+use macros::AsComponentEvent;
 
 pub struct InningsSelect {
     selected_team: Option<usize>,
@@ -83,7 +83,7 @@ impl InningsSelect {
     }
 }
 
-#[derive(Clone, Debug, AsEvent)]
+#[derive(Clone, Debug, AsComponentEvent)]
 pub enum InningsSelectEvent {
     InningsSelected(usize),
     SubmitInnings,

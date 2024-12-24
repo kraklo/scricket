@@ -1,6 +1,6 @@
 use crate::state::game_state::extras::{Extra, ExtraType, Extras};
 use crate::state::game_state::overs::Overs;
-use crate::state::game_state::wickets::HowOut;
+use crate::state::game_state::wickets::{HowOut, WicketDetails};
 use crate::state::Event;
 use iced::widget::{container, text, Container};
 use serde::{Deserialize, Serialize};
@@ -11,6 +11,7 @@ pub struct Player {
     first_name: String,
     last_name: String,
     pub how_out: HowOut,
+    pub wicket_details: Option<WicketDetails>,
     pub runs_scored: u32,
     pub balls_faced: u32,
     pub runs_conceded: u32,
@@ -29,6 +30,7 @@ impl Player {
             first_name: String::from(first_name),
             last_name: String::from(last_name),
             how_out: HowOut::DidNotBat,
+            wicket_details: None,
             runs_scored: 0,
             balls_faced: 0,
             runs_conceded: 0,

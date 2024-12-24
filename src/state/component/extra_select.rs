@@ -5,7 +5,7 @@ use crate::state::game_state::extras::{Extra, ExtraType};
 use crate::state::{Event, GameState, Page};
 use iced::widget::{button, column, radio, text};
 use iced::Element;
-use macros::AsEvent;
+use macros::AsComponentEvent;
 use strum::IntoEnumIterator;
 
 pub struct ExtraSelect {
@@ -98,7 +98,7 @@ impl ExtraSelect {
     }
 }
 
-#[derive(Clone, Debug, AsEvent)]
+#[derive(Clone, Debug, AsComponentEvent)]
 pub enum ExtraSelectEvent {
     ExtraSelected(usize),
     SubmitExtra,

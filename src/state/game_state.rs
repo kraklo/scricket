@@ -13,7 +13,7 @@ use std::cell::RefCell;
 use std::rc::Rc;
 pub use team::player::{Player, PlayerType};
 pub use team::{Team, TeamType};
-use wickets::HowOut;
+use wickets::{HowOut, WicketDetails, WicketEvent};
 
 #[derive(Clone)]
 pub struct GameState {
@@ -46,8 +46,8 @@ impl GameState {
                     page = Some(Page::SelectBowler);
                 }
             }
-            GameEvent::Wicket(how_out) => {
-                self.add_wicket(&how_out);
+            GameEvent::Wicket(wicket_event) => {
+                self.add_wicket(&wicket_event);
 
                 if self.batting_team().wickets == 10 {
                     self.update(GameEvent::EndInnings);
@@ -390,14 +390,19 @@ impl GameState {
         }
     }
 
-    fn add_wicket(&mut self, how_out: &HowOut) {
+    fn add_wicket(&mut self, wicket_event: &WicketEvent) {
         let player = Rc::clone(
             &self
                 .on_strike_batter()
                 .expect("There should be an on strike batter when a wicket occurs")
                 .to_owned(),
         );
-        player.borrow_mut().how_out = how_out.clone();
+        let mut player = player.borrow_mut();
+        player.how_out = wicket_event.how_out.clone();
+        player.wicket_details = Some(WicketDetails::new(
+            wicket_event.bowler,
+            wicket_event.fielder,
+        ));
 
         let team = self.batting_team_mut();
         team.wickets += 1;

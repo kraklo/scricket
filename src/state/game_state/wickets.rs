@@ -29,3 +29,32 @@ pub enum HowOut {
     #[strum(to_string = "Retired not out")]
     RetiredNotOut,
 }
+
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct WicketDetails {
+    pub bowler: Option<usize>,
+    pub fielder: Option<usize>,
+}
+
+impl WicketDetails {
+    pub fn new(bowler: Option<usize>, fielder: Option<usize>) -> Self {
+        Self { bowler, fielder }
+    }
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize)]
+pub struct WicketEvent {
+    pub how_out: HowOut,
+    pub bowler: Option<usize>,
+    pub fielder: Option<usize>,
+}
+
+impl WicketEvent {
+    pub fn new(how_out: HowOut, bowler: Option<usize>, fielder: Option<usize>) -> Self {
+        Self {
+            how_out,
+            bowler,
+            fielder,
+        }
+    }
+}

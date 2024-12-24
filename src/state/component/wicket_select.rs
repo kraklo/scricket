@@ -1,14 +1,16 @@
-use super::{AsEvent, Component, ComponentEvent};
+use super::fielder_select::FielderSelect;
+use super::{AsEvent, Component, ComponentEvent, Subcomponent};
 use crate::state::game_state::event::GameEvent;
-use crate::state::game_state::wickets::HowOut;
+use crate::state::game_state::wickets::{HowOut, WicketEvent};
 use crate::state::{Event, GameState, Page};
-use iced::widget::{button, column, radio, text};
+use iced::widget::{button, column, radio, row, text};
 use iced::Element;
-use macros::AsEvent;
+use macros::AsComponentEvent;
 use strum::IntoEnumIterator;
 
 pub struct WicketSelect {
     selected_how_out: Option<usize>,
+    subcomponent: Option<Box<dyn Subcomponent<usize>>>,
 }
 
 impl Component for WicketSelect {
@@ -17,33 +19,63 @@ impl Component for WicketSelect {
         event: ComponentEvent,
         mut game_state: GameState,
     ) -> (GameState, Option<Page>) {
+        let mut page = None;
+
         let event = match event {
             ComponentEvent::WicketSelectEvent(wicket_select_event) => wicket_select_event,
+            ComponentEvent::SubcomponentEvent(subcomponent_event) => {
+                (game_state, page) = self
+                    .subcomponent
+                    .as_mut()
+                    .expect("extra component should exist")
+                    .update(subcomponent_event.clone(), game_state);
+
+                WicketSelectEvent::SubcomponentEvent
+            }
             _ => {
                 panic!("Wicket component has been called with an event that is not a wicket event!")
             }
         };
 
-        let mut page = None;
-
         match event {
             WicketSelectEvent::HowOutSelected(how_out_index) => {
-                self.selected_how_out = Some(how_out_index)
+                self.selected_how_out = Some(how_out_index);
+                let how_out = HowOut::iter().collect::<Vec<HowOut>>()[self
+                    .selected_how_out
+                    .expect("How out should be selected when a wicket is submitted")]
+                .clone();
+                let players = &game_state.bowling_team().players;
+
+                match how_out {
+                    HowOut::Caught => {
+                        self.subcomponent = Some(Box::new(FielderSelect::new(players.to_owned())))
+                    }
+                    _ => self.subcomponent = None,
+                }
             }
             WicketSelectEvent::SubmitWicket => {
                 let how_out = HowOut::iter().collect::<Vec<HowOut>>()[self
                     .selected_how_out
                     .expect("How out should be selected when a wicket is submitted")]
                 .clone();
-                game_state.update(GameEvent::Wicket(how_out));
+                let bowler = Some(game_state.bowler.as_ref().unwrap().borrow().order);
+                let fielder = match &self.subcomponent {
+                    Some(subcomponent) => subcomponent.get_value(),
+                    None => None,
+                };
+
+                game_state.update(GameEvent::Wicket(WicketEvent::new(
+                    how_out, bowler, fielder,
+                )));
                 page = Some(Page::SelectBatter);
             }
+            WicketSelectEvent::SubcomponentEvent => (),
         }
 
         (game_state, page)
     }
 
-    fn view<'a>(&'a self, _: &'a GameState) -> Element<'a, Event> {
+    fn view<'a>(&'a self, game_state: &'a GameState) -> Element<'a, Event> {
         let mut column = column![text("Select how out:")];
 
         for (i, how_out) in HowOut::iter().enumerate() {
@@ -59,26 +91,36 @@ impl Component for WicketSelect {
             ));
         }
 
-        if let Some(_) = self.selected_how_out {
+        if self.selected_how_out.is_some()
+            && (self.subcomponent.is_none() || self.subcomponent.as_ref().unwrap().can_submit())
+        {
             column = column.push(
                 button("Select how out").on_press(WicketSelectEvent::SubmitWicket.as_event()),
             );
         }
 
-        column.into()
+        let mut row = row![column];
+
+        if let Some(component) = &self.subcomponent {
+            row = row.push(component.view(&game_state));
+        }
+
+        row.into()
     }
 }
 
 impl WicketSelect {
     pub fn new() -> Self {
-        WicketSelect {
+        Self {
             selected_how_out: None,
+            subcomponent: None,
         }
     }
 }
 
-#[derive(Clone, Debug, AsEvent)]
+#[derive(Clone, Debug, AsComponentEvent)]
 pub enum WicketSelectEvent {
     HowOutSelected(usize),
     SubmitWicket,
+    SubcomponentEvent,
 }
