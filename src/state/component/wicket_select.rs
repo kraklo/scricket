@@ -1,16 +1,23 @@
 use super::fielder_select::FielderSelect;
+use super::runout_select::RunoutSelect;
 use super::{AsEvent, Component, ComponentEvent, Subcomponent};
 use crate::state::game_state::event::GameEvent;
 use crate::state::game_state::wickets::{HowOut, WicketEvent};
+use crate::state::game_state::PlayerType;
 use crate::state::{Event, GameState, Page};
 use iced::widget::{button, column, radio, row, text};
 use iced::Element;
 use macros::AsComponentEvent;
 use strum::IntoEnumIterator;
 
+pub enum WicketSubcomponentData {
+    CaughtSubcomponent(usize),
+    RunoutSubcomponent((usize, Option<usize>)),
+}
+
 pub struct WicketSelect {
     selected_how_out: Option<usize>,
-    subcomponent: Option<Box<dyn Subcomponent<usize>>>,
+    subcomponent: Option<Box<dyn Subcomponent<WicketSubcomponentData>>>,
 }
 
 impl Component for WicketSelect {
@@ -50,6 +57,9 @@ impl Component for WicketSelect {
                     HowOut::Caught => {
                         self.subcomponent = Some(Box::new(FielderSelect::new(players.to_owned())))
                     }
+                    HowOut::RunOut => {
+                        self.subcomponent = Some(Box::new(RunoutSelect::new(&game_state)))
+                    }
                     _ => self.subcomponent = None,
                 }
             }
@@ -59,10 +69,36 @@ impl Component for WicketSelect {
                     .expect("How out should be selected when a wicket is submitted")]
                 .clone();
                 let bowler = Some(game_state.bowler.as_ref().unwrap().borrow().order);
-                let fielder = match &self.subcomponent {
+                let data = match &self.subcomponent {
                     Some(subcomponent) => subcomponent.get_value(),
                     None => None,
                 };
+
+                let fielder: Option<usize>;
+
+                match data {
+                    Some(data) => match data {
+                        WicketSubcomponentData::CaughtSubcomponent(fielder_num) => {
+                            fielder = Some(fielder_num)
+                        }
+                        WicketSubcomponentData::RunoutSubcomponent((
+                            selected_batter,
+                            fielder_num,
+                        )) => {
+                            let batter_num = match game_state.on_strike_batter {
+                                PlayerType::A => 0,
+                                PlayerType::B => 1,
+                            };
+
+                            if batter_num != selected_batter {
+                                game_state.change_strike();
+                            }
+
+                            fielder = fielder_num;
+                        }
+                    },
+                    None => fielder = None,
+                }
 
                 game_state.update(GameEvent::Wicket(WicketEvent::new(
                     how_out, bowler, fielder,

@@ -1,3 +1,4 @@
+use super::wicket_select::WicketSubcomponentData;
 use super::{AsEvent, ComponentEvent, Subcomponent, SubcomponentEvent};
 use crate::state::game_state::team::player::Player;
 use crate::state::{Event, GameState, Page};
@@ -12,9 +13,10 @@ use macros::AsSubcomponentEvent;
 pub struct FielderSelect {
     players: Vec<Rc<RefCell<Player>>>,
     selected_player: Option<usize>,
+    selection_fn: Box<dyn Fn(usize) -> Event>,
 }
 
-impl Subcomponent<usize> for FielderSelect {
+impl Subcomponent<WicketSubcomponentData> for FielderSelect {
     fn update(
         &mut self,
         event: SubcomponentEvent,
@@ -26,7 +28,7 @@ impl Subcomponent<usize> for FielderSelect {
         };
 
         match event {
-            FielderSelectEvent::FielderSelected(order) => self.selected_player = Some(order),
+            FielderSelectEvent::FielderSelected(order) => self.select_player(order),
         }
 
         (game_state, None)
@@ -42,7 +44,7 @@ impl Subcomponent<usize> for FielderSelect {
                 player.to_string(),
                 player.order,
                 self.selected_player,
-                |selection| FielderSelectEvent::FielderSelected(selection).as_event(),
+                |selection| (self.selection_fn)(selection),
             ));
         }
 
@@ -50,11 +52,13 @@ impl Subcomponent<usize> for FielderSelect {
     }
 
     fn can_submit(&self) -> bool {
-        self.selected_player != None
+        true
     }
 
-    fn get_value(&self) -> Option<usize> {
-        self.selected_player.clone()
+    fn get_value(&self) -> Option<WicketSubcomponentData> {
+        Some(WicketSubcomponentData::CaughtSubcomponent(
+            self.selected_player?,
+        ))
     }
 }
 
@@ -63,7 +67,25 @@ impl FielderSelect {
         Self {
             selected_player: None,
             players,
+            selection_fn: Box::new(|selection| {
+                FielderSelectEvent::FielderSelected(selection).as_event()
+            }),
         }
+    }
+
+    pub fn new_with_selection_fn(
+        players: Vec<Rc<RefCell<Player>>>,
+        selection_fn: Box<dyn Fn(usize) -> Event>,
+    ) -> Self {
+        Self {
+            selected_player: None,
+            players,
+            selection_fn: selection_fn,
+        }
+    }
+
+    pub fn select_player(&mut self, order: usize) {
+        self.selected_player = Some(order);
     }
 }
 

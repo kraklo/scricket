@@ -22,9 +22,9 @@ pub struct GameState {
     pub batting_team: TeamType,
     pub events: Vec<GameEvent>,
     event_history: Vec<GameEventHistory>,
-    batter_a: Option<Rc<RefCell<Player>>>,
-    batter_b: Option<Rc<RefCell<Player>>>,
-    on_strike_batter: PlayerType,
+    pub batter_a: Option<Rc<RefCell<Player>>>,
+    pub batter_b: Option<Rc<RefCell<Player>>>,
+    pub on_strike_batter: PlayerType,
     pub bowler: Option<Rc<RefCell<Player>>>,
     last_bowler: Option<usize>,
     pub last_last_bowler: Option<usize>,
@@ -352,7 +352,7 @@ impl GameState {
         };
     }
 
-    fn change_strike(&mut self) {
+    pub fn change_strike(&mut self) {
         self.on_strike_batter = match self.on_strike_batter {
             PlayerType::A => PlayerType::B,
             PlayerType::B => PlayerType::A,

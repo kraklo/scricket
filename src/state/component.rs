@@ -1,24 +1,31 @@
+// components
 pub mod batter_select;
 pub mod bowler_select;
 pub mod extra_select;
-pub mod fielder_select;
 pub mod innings_select;
 pub mod runs_button;
 pub mod start;
 pub mod team_entry;
 pub mod wicket_select;
 
-use crate::state::{Event, GameState, Page};
 use batter_select::BatterSelectEvent;
 use bowler_select::BowlerSelectEvent;
 use extra_select::ExtraSelectEvent;
-use fielder_select::FielderSelectEvent;
-use iced::Element;
 use innings_select::InningsSelectEvent;
 use runs_button::RunsButtonEvent;
 use start::StartEvent;
 use team_entry::TeamEntryEvent;
 use wicket_select::WicketSelectEvent;
+
+// subcomponents
+pub mod fielder_select;
+pub mod runout_select;
+
+use fielder_select::FielderSelectEvent;
+use runout_select::RunoutSelectEvent;
+
+use crate::state::{Event, GameState, Page};
+use iced::Element;
 
 pub trait Component {
     fn update(&mut self, event: ComponentEvent, game_state: GameState)
@@ -53,6 +60,7 @@ pub trait Subcomponent<T> {
 #[derive(Clone, Debug)]
 pub enum SubcomponentEvent {
     FielderSelectEvent(FielderSelectEvent),
+    RunoutSelectEvent(RunoutSelectEvent),
 }
 
 pub trait AsEvent {
