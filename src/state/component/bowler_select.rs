@@ -1,4 +1,4 @@
-use super::{AsEvent, Component, ComponentEvent};
+use crate::state::component::{AsEvent, Component, ComponentEvent};
 use crate::state::game_state::event::GameEvent;
 use crate::state::game_state::team::player::Player;
 use crate::state::{Event, GameState, Page};

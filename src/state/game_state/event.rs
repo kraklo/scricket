@@ -1,7 +1,7 @@
-use super::wickets::WicketEvent;
-use super::Event;
-use super::{Player, TeamType};
 use crate::state::game_state::extras::Extra;
+use crate::state::game_state::wickets::WicketEvent;
+use crate::state::game_state::Event;
+use crate::state::game_state::{Player, TeamType};
 use iced::widget::{container, text, Container};
 use serde::{Deserialize, Serialize};
 use std::cell::RefCell;

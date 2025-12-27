@@ -1,4 +1,4 @@
-use super::{AsEvent, Component, ComponentEvent};
+use crate::state::component::{AsEvent, Component, ComponentEvent};
 use crate::state::{Event, GameState, Page};
 use iced::widget::{button, row};
 use iced::Element;

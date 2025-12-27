@@ -1,6 +1,6 @@
-use super::fielder_select::FielderSelect;
-use super::runout_select::RunoutSelect;
-use super::{AsEvent, Component, ComponentEvent, Subcomponent};
+use crate::state::component::fielder_select::FielderSelect;
+use crate::state::component::runout_select::RunoutSelect;
+use crate::state::component::{AsEvent, Component, ComponentEvent, Subcomponent};
 use crate::state::game_state::event::GameEvent;
 use crate::state::game_state::wickets::{HowOut, WicketEvent};
 use crate::state::game_state::PlayerType;

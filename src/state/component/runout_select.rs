@@ -1,6 +1,6 @@
-use super::fielder_select::{FielderSelect, FielderSelectEvent};
-use super::wicket_select::WicketSubcomponentData;
-use super::{AsEvent, ComponentEvent, Subcomponent, SubcomponentEvent};
+use crate::state::component::fielder_select::{FielderSelect, FielderSelectEvent};
+use crate::state::component::wicket_select::WicketSubcomponentData;
+use crate::state::component::{AsEvent, ComponentEvent, Subcomponent, SubcomponentEvent};
 use crate::state::{Event, GameState, Page};
 use macros::AsSubcomponentEvent;
 

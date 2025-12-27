@@ -1,5 +1,5 @@
-use super::component::ComponentEvent;
-use super::{GameEvent, Page};
+use crate::state::component::ComponentEvent;
+use crate::state::{GameEvent, Page};
 
 #[derive(Debug, Clone)]
 pub enum Event {

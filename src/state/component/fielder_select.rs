@@ -1,5 +1,5 @@
-use super::wicket_select::WicketSubcomponentData;
-use super::{AsEvent, ComponentEvent, Subcomponent, SubcomponentEvent};
+use crate::state::component::wicket_select::WicketSubcomponentData;
+use crate::state::component::{AsEvent, ComponentEvent, Subcomponent, SubcomponentEvent};
 use crate::state::game_state::team::player::Player;
 use crate::state::{Event, GameState, Page};
 
