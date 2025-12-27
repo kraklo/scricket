@@ -1,11 +1,9 @@
-pub mod component;
 pub mod event;
 pub mod game_state;
 
 use std::fs;
 
 use bincode;
-use component::Component;
 use event::Event;
 use game_state::event::GameEvent;
 use game_state::GameState;
@@ -13,13 +11,14 @@ use iced::Element;
 use rfd::FileDialog;
 use serde_json;
 
-use component::batter_select::BatterSelect;
-use component::bowler_select::BowlerSelect;
-use component::extra_select::ExtraSelect;
-use component::innings_select::InningsSelect;
-use component::start::Start;
-use component::team_entry::TeamEntry;
-use component::wicket_select::WicketSelect;
+use crate::components::batter_select::BatterSelect;
+use crate::components::bowler_select::BowlerSelect;
+use crate::components::extra_select::ExtraSelect;
+use crate::components::innings_select::InningsSelect;
+use crate::components::start::Start;
+use crate::components::team_entry::TeamEntry;
+use crate::components::wicket_select::WicketSelect;
+use crate::components::Component;
 
 pub struct State {
     game_state: GameState,

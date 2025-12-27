@@ -24,7 +24,9 @@ pub mod runout_select;
 use fielder_select::FielderSelectEvent;
 use runout_select::RunoutSelectEvent;
 
-use crate::state::{Event, GameState, Page};
+use crate::state::event::Event;
+use crate::state::game_state::GameState;
+use crate::state::Page;
 use iced::Element;
 
 pub trait Component {

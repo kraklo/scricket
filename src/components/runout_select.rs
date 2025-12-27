@@ -1,7 +1,9 @@
-use crate::state::component::fielder_select::{FielderSelect, FielderSelectEvent};
-use crate::state::component::wicket_select::WicketSubcomponentData;
-use crate::state::component::{AsEvent, ComponentEvent, Subcomponent, SubcomponentEvent};
-use crate::state::{Event, GameState, Page};
+use crate::components::fielder_select::{FielderSelect, FielderSelectEvent};
+use crate::components::wicket_select::WicketSubcomponentData;
+use crate::components::{AsEvent, ComponentEvent, Subcomponent, SubcomponentEvent};
+use crate::state::event::Event;
+use crate::state::game_state::GameState;
+use crate::state::Page;
 use macros::AsSubcomponentEvent;
 
 use iced::widget::row;

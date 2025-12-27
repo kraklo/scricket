@@ -1,7 +1,9 @@
-use crate::state::component::wicket_select::WicketSubcomponentData;
-use crate::state::component::{AsEvent, ComponentEvent, Subcomponent, SubcomponentEvent};
+use crate::components::wicket_select::WicketSubcomponentData;
+use crate::components::{AsEvent, ComponentEvent, Subcomponent, SubcomponentEvent};
 use crate::state::game_state::team::player::Player;
-use crate::state::{Event, GameState, Page};
+use crate::state::event::Event;
+use crate::state::game_state::GameState;
+use crate::state::Page;
 
 use std::cell::RefCell;
 use std::rc::Rc;

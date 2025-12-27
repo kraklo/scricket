@@ -1,4 +1,4 @@
-use crate::state::component::ComponentEvent;
+use crate::components::ComponentEvent;
 use crate::state::{GameEvent, Page};
 
 #[derive(Debug, Clone)]

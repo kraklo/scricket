@@ -1,8 +1,10 @@
-use crate::state::component::{AsEvent, Component, ComponentEvent};
+use crate::components::{AsEvent, Component, ComponentEvent};
 use crate::state::game_state::event::GameEvent;
 use crate::state::game_state::team::player::Player;
 use crate::state::game_state::TeamType;
-use crate::state::{Event, GameState, Page};
+use crate::state::event::Event;
+use crate::state::game_state::GameState;
+use crate::state::Page;
 use iced::widget::{button, column, row, text_input};
 use iced::Element;
 use macros::AsComponentEvent;

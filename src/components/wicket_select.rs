@@ -1,10 +1,12 @@
-use crate::state::component::fielder_select::FielderSelect;
-use crate::state::component::runout_select::RunoutSelect;
-use crate::state::component::{AsEvent, Component, ComponentEvent, Subcomponent};
+use crate::components::fielder_select::FielderSelect;
+use crate::components::runout_select::RunoutSelect;
+use crate::components::{AsEvent, Component, ComponentEvent, Subcomponent};
 use crate::state::game_state::event::GameEvent;
 use crate::state::game_state::wickets::{HowOut, WicketEvent};
 use crate::state::game_state::PlayerType;
-use crate::state::{Event, GameState, Page};
+use crate::state::event::Event;
+use crate::state::game_state::GameState;
+use crate::state::Page;
 use iced::widget::{button, column, radio, row, text};
 use iced::Element;
 use macros::AsComponentEvent;

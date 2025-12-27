@@ -1,3 +1,4 @@
+pub mod components;
 mod state;
 
 use state::State;
