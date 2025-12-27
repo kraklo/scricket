@@ -1,9 +1,11 @@
 pub mod event;
 pub mod extras;
 pub mod overs;
+mod summary;
 pub mod team;
 pub mod wickets;
 
+use crate::state::game_state::summary::Summary;
 use crate::state::{Event, Page};
 use event::{GameEvent, GameEventHistory};
 use extras::ExtraType;
@@ -476,7 +478,13 @@ impl GameState {
 
         self.batting_team_mut().overs.end_over();
         self.change_strike();
-        self.add_event(GameEvent::EndOver);
+
+        let team = self.batting_team();
+        self.add_event(GameEvent::EndOver(Summary::new(
+            team.runs,
+            team.wickets,
+            team.overs.clone(),
+        )));
     }
 }
 

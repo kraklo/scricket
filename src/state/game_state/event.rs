@@ -1,4 +1,5 @@
 use crate::state::game_state::extras::Extra;
+use crate::state::game_state::summary::Summary;
 use crate::state::game_state::wickets::WicketEvent;
 use crate::state::game_state::Event;
 use crate::state::game_state::{Player, TeamType};
@@ -13,7 +14,7 @@ pub enum GameEvent {
     Extra(Extra),
     Wicket(WicketEvent),
     StartOver,
-    EndOver,
+    EndOver(Summary),
     StartInnings(TeamType),
     EndInnings,
     SelectOnStrike(usize),
@@ -34,6 +35,12 @@ impl GameEvent {
                 String::from(format!("wicket: {}", wicket_event.how_out.to_string()))
             }
             Self::Extra(extra) => String::from(format!("extra: {}", extra.extra_type.to_string())),
+            Self::EndOver(summary) => String::from(format!(
+                "End of over: {}/{} ({})",
+                summary.wickets,
+                summary.runs,
+                summary.overs.to_string()
+            )),
             _ => return None,
         };
 

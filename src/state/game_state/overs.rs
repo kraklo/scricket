@@ -29,3 +29,9 @@ impl Overs {
         self.overs += 1;
     }
 }
+
+impl ToString for Overs {
+    fn to_string(&self) -> String {
+        String::from(format!("{}.{}", self.overs, self.balls))
+    }
+}
