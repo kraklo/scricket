@@ -9,4 +9,5 @@ pub enum Event {
     SaveGame,
     ChangePage(Page),
     Undo,
+    DeleteEvent(usize),
 }

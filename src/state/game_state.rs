@@ -245,9 +245,7 @@ impl GameState {
         let mut column = Column::new();
 
         for event in &self.event_history {
-            if let Some(event_container) = event.to_container() {
-                column = column.push(event_container);
-            }
+            column = column.push(event.to_element());
 
             if let Some(event_container) = self.events[event.event_index].to_container() {
                 column = column.push(event_container);
@@ -326,15 +324,18 @@ impl GameState {
 
     fn add_event(&mut self, event: GameEvent) {
         let event_index = self.events.len();
-        let batter = self.on_strike_batter();
-        let bowler = if let Some(bowler) = &self.bowler {
-            Some(Rc::clone(bowler))
-        } else {
-            None
-        };
+        if let Some(batter) = self.on_strike_batter() {
+            if let Some(bowler) = &self.bowler {
+                if event.is_ball() {
+                    self.event_history.push(GameEventHistory::new(
+                        event_index,
+                        Rc::clone(bowler),
+                        batter,
+                    ));
+                }
+            }
+        }
         self.events.push(event.clone());
-        self.event_history
-            .push(GameEventHistory::new(event_index, bowler, batter));
     }
 
     pub fn add_player(&mut self, player: Player) {

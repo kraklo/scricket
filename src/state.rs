@@ -64,6 +64,10 @@ impl State {
                 self.game_state =
                     GameState::from_events(self.game_state.events[..end_index].to_vec())
             }
+            Event::DeleteEvent(index) => {
+                self.game_state.events.remove(index);
+                self.game_state = GameState::from_events(self.game_state.events.clone());
+            }
         }
 
         if let Some(page) = page {

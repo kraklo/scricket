@@ -1,9 +1,10 @@
+use crate::components::event_edit::EventEdit;
 use crate::state::game_state::extras::Extra;
 use crate::state::game_state::summary::Summary;
 use crate::state::game_state::wickets::WicketEvent;
 use crate::state::game_state::Event;
 use crate::state::game_state::{Player, TeamType};
-use iced::widget::{container, text, Container};
+use iced::widget::{container, row, text, Container};
 use serde::{Deserialize, Serialize};
 use std::cell::RefCell;
 use std::rc::Rc;
@@ -65,34 +66,34 @@ impl GameEvent {
 #[derive(Debug, Clone)]
 pub struct GameEventHistory {
     pub event_index: usize,
-    pub bowler: Option<Rc<RefCell<Player>>>,
-    pub batter: Option<Rc<RefCell<Player>>>,
+    pub bowler: Rc<RefCell<Player>>,
+    pub batter: Rc<RefCell<Player>>,
+    edit_widget: EventEdit,
 }
 
 impl GameEventHistory {
     pub fn new(
         event_index: usize,
-        bowler: Option<Rc<RefCell<Player>>>,
-        batter: Option<Rc<RefCell<Player>>>,
+        bowler: Rc<RefCell<Player>>,
+        batter: Rc<RefCell<Player>>,
     ) -> Self {
         GameEventHistory {
             event_index,
             bowler,
             batter,
+            edit_widget: EventEdit::new(event_index),
         }
     }
 
-    pub fn to_container(&self) -> Option<Container<Event>> {
-        if let Some(bowler) = &self.bowler {
-            if let Some(batter) = &self.batter {
-                return Some(container(text(format!(
-                    "{bowler} to {batter}",
-                    bowler = bowler.borrow(),
-                    batter = batter.borrow()
-                ))));
-            }
-        }
-
-        None
+    pub fn to_element<'a>(&'a self) -> iced::Element<'a, Event> {
+        return row![
+            text(format!(
+                "{bowler} to {batter}",
+                bowler = self.bowler.borrow(),
+                batter = self.batter.borrow()
+            )),
+            self.edit_widget.to_element()
+        ]
+        .into();
     }
 }

@@ -1,6 +1,7 @@
 // components
 pub mod batter_select;
 pub mod bowler_select;
+pub mod event_edit;
 pub mod extra_select;
 pub mod innings_select;
 pub mod runs_button;
@@ -24,6 +25,7 @@ pub mod runout_select;
 use fielder_select::FielderSelectEvent;
 use runout_select::RunoutSelectEvent;
 
+use crate::components::event_edit::EventEditEvent;
 use crate::state::event::Event;
 use crate::state::game_state::GameState;
 use crate::state::Page;
@@ -46,6 +48,7 @@ pub enum ComponentEvent {
     RunsButtonEvent(RunsButtonEvent),
     InningsSelectEvent(InningsSelectEvent),
     SubcomponentEvent(SubcomponentEvent),
+    EventEditEvent(EventEditEvent),
 }
 
 pub trait Subcomponent<T> {
