@@ -92,7 +92,8 @@ impl RunoutSelect {
             batter_select: FielderSelect::new_with_selection_fn(
                 batters,
                 Box::new(|selection| RunoutSelectEvent::BatterSelectEvent(selection).as_event()),
-            ),
+            )
+            .with_message(String::from("Select run out batter:")),
             fielder_select: FielderSelect::new_with_selection_fn(
                 fielders,
                 Box::new(|selection| RunoutSelectEvent::FielderSelectEvent(selection).as_event()),

@@ -1,7 +1,7 @@
 use crate::components::wicket_select::WicketSubcomponentData;
 use crate::components::{AsEvent, ComponentEvent, Subcomponent, SubcomponentEvent};
-use crate::state::game_state::team::player::Player;
 use crate::state::event::Event;
+use crate::state::game_state::team::player::Player;
 use crate::state::game_state::GameState;
 use crate::state::Page;
 
@@ -16,6 +16,7 @@ pub struct FielderSelect {
     players: Vec<Rc<RefCell<Player>>>,
     selected_player: Option<usize>,
     selection_fn: Box<dyn Fn(usize) -> Event>,
+    message: Option<String>,
 }
 
 impl Subcomponent<WicketSubcomponentData> for FielderSelect {
@@ -37,7 +38,11 @@ impl Subcomponent<WicketSubcomponentData> for FielderSelect {
     }
 
     fn view<'a>(&'a self, _: &'a GameState) -> Element<'a, Event> {
-        let mut column = column![text("Select fielder:")];
+        let mut column = column![text(
+            self.message
+                .clone()
+                .unwrap_or(String::from("Select fielder:"))
+        )];
 
         for player in &self.players {
             let player = player.borrow();
@@ -72,6 +77,7 @@ impl FielderSelect {
             selection_fn: Box::new(|selection| {
                 FielderSelectEvent::FielderSelected(selection).as_event()
             }),
+            message: None,
         }
     }
 
@@ -83,11 +89,17 @@ impl FielderSelect {
             selected_player: None,
             players,
             selection_fn: selection_fn,
+            message: None,
         }
     }
 
     pub fn select_player(&mut self, order: usize) {
         self.selected_player = Some(order);
+    }
+
+    pub fn with_message(mut self, message: String) -> Self {
+        self.message = Some(message);
+        self
     }
 }
 
