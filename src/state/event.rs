@@ -8,4 +8,5 @@ pub enum Event {
     LoadGame,
     SaveGame,
     ChangePage(Page),
+    Undo,
 }

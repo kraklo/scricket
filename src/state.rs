@@ -46,6 +46,24 @@ impl State {
             Event::ChangePage(page) => self.set_page(page),
             Event::LoadGame => self.load_game(),
             Event::SaveGame => self.save_game(),
+            Event::Undo => {
+                let mut end_index = self.game_state.events.len() - 1;
+
+                while end_index != 0 {
+                    if self.game_state.events[end_index].is_ball() {
+                        break;
+                    }
+                    if self.game_state.events[end_index].is_setup_event() {
+                        end_index += 1;
+                        break;
+                    }
+
+                    end_index -= 1;
+                }
+
+                self.game_state =
+                    GameState::from_events(self.game_state.events[..end_index].to_vec())
+            }
         }
 
         if let Some(page) = page {

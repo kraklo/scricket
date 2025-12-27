@@ -46,6 +46,20 @@ impl GameEvent {
 
         Some(container(text(container_text)))
     }
+
+    pub fn is_ball(&self) -> bool {
+        match *self {
+            GameEvent::Runs(_) | GameEvent::Wicket(_) | GameEvent::Extra(_) => true,
+            _ => false,
+        }
+    }
+
+    pub fn is_setup_event(&self) -> bool {
+        match *self {
+            GameEvent::AddPlayer(_) | GameEvent::SubmitTeam(_) => true,
+            _ => false,
+        }
+    }
 }
 
 #[derive(Debug, Clone)]
